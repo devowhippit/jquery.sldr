@@ -1,7 +1,7 @@
 /*
  * sldr
  * 
- * {Description} sldr, the "Fuck-your-slider" slider.
+ * {Description} sldr
  * 
  * Copyright (c) 2013 Devon Hirth
  * 
@@ -19,12 +19,40 @@
  * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * **************
+ *     TO DOS
+ * **************
+ *
+ * 1. Responsive Height (Leave up to css?)
+ * 2. Auto Slide (Timer) (Multiple Timers) DONE!
+ * 3. Animation Callback for custom transitions
+ * 4. Shadow Box Mode???
+ * 5. Make Slider.Width() offset dynamic in base.resizeElements
+ * 6. Image loading optimization
+ * 7. Rework Fill gaps to work with post load images.
+ *
+ * slides.each( function( i ) {
+		var th = $( this );
+		var thImg = th.find( 'img' );
+		var ratio = thImg.attr( 'height' ) / thImg.attr( 'width' );
+		var width = actionPanelHeight / ratio;
+		th.css( 'height' , actionPanelHeight ).css( 'width' , width + 10 );
+	});
+ * 
  */
 
-
+/**
+ * Plugin
+ * @param  {[type]} $ [description]
+ * @return {[type]}   [description]
+ */
 ( function( $ ) {
 
-  $.sldr = function( el , options ) {
+var $win = $( window );
+
+$.sldr = function( el , options ) {
 
   	/**
   	 * 1. To avoid scope issues, use 'base' instead of 'this.'
@@ -34,87 +62,141 @@
   	 */
     var base = this;
     base.$el = $(el);
-    base.el  = el; 
+    base.el  = el;
     base.$el.data( "sldr" , base );
 
     /**
      * Plugin Vars
      */
-    var $win        = $( window );
-    base.callback   = new Array();
-    base.sldrSlides = new Array();
+    base.callback       = new Array();
+    base.sldrSlides     = new Array();
+    base.sldrLoadSlides = new Array();
+    base.$sliderTimers  = new Array();
+	base.$resizeTimers  = new Array();
+	base.$delayTimers   = new Array();
+
+	base.wrp            = base.$el.children();
+	base.elmnts         = base.wrp.children();
+	base.elmntsHTML     = base.wrp.html();
 
 	/**
-	 * [init description]
-	 * @return {[type]} [description]
+	 * Initializing function
+	 * @return void
 	 */
 	base.init = function() {
-		try {
 
-			base.config = $.extend( {} , $.sldr.defaultOptions , options );
+		base.config = $.extend( {} , $.sldr.defaultOptions , options );
 
-			//console.log( base );
+		base.browser();
 
-			var sldr       = base.$el;
-			var wrp        = sldr.children();
-			var elmnts     = wrp.children();
-			var elmntsHTML = wrp.html();
-			var sldrnav    = $( '.sldr-nav' );
+		var sldr       = base.$el;
+		var wrp        = sldr.children();
+		var elmnts     = wrp.children();
+		var elmntsHTML = wrp.html();
+		var postLoad   = false;
 
-			/**
-			 * Do not finishi initiating plugin if there is only one slide.
-			 */
-			if ( elmnts.length <= 1 ) {
-				elmnts.eq( 0 ).addClass( base.config.focalClass ) 
-				return; 
-			}
+		/**
+		 * Build Slide Array
+		 * @type {Number}
+		 */
+		if ( base.sldrSlides == '' ) {
 
-			/**
-			 * Build Slide Array
-			 * @type {Number}
-			 */
+			base.callback = { 
+				'sldr' : base.$el,
+				'prevFocalIndex' : '',
+				'prevSlideNum' : '',
+				'currentFocalIndex' : '',
+				'currentClass' : '',
+				'currentID' : '',
+				'currentFocalPoint' : '',
+				'currentSlideNum' : '',
+				'shiftWidth' : '',
+				'nextFocalIndex' : '',
+				'nextSlideNum' : ''
+			};
+
 			for ( var i = 1; i < elmnts.length + 1; i++ ) {
-				var slide = elmnts.eq( i - 1 );
+
+				var slide     = elmnts.eq( i - 1 );
+				var slideLoad = slide.find( '.sldr-load' )
 				base.sldrSlides.push({
+					'sld'        : slide,
 					'slideNum'   : i,
 					'id'         : slide.attr( 'id' ),
 					'class_name' : slide.attr( 'class' ),  // 'class' is reserved var in javascript, throws errors in IE changed to 'class_name'
 					'html'       : slide.html()
 				});
+
+				if ( slideLoad.hasClass( 'sldr-load' ) ) {
+					postLoad = true;
+					base.sldrLoadSlides.push({
+						'slideNum'   : i,
+						'id'         : slide.attr( 'id' ),
+						'class_name' : slide.attr( 'class' ),  // 'class' is reserved var in javascript, throws errors in IE changed to 'class_name'
+						'html'       : slide.html()
+					});
+				}
 			}
+		}
+		
+		/**
+		 * Do not finish initiating plugin if there is only one slide.
+		 */
+		if ( elmnts.length <= 1 ) {
+			elmnts.eq( 0 ).addClass( base.config.focalClass );
+			base.sliderInit( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
+			base.sliderLoaded( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
+		}
+
+		/**
+		 * Fill Gaps (if any)
+		 */
+		if ( elmnts.length > 1 ) base.fillGaps( elmntsHTML );
+
+		/**
+		 * sliderInit Callback
+		 */
+		base.sliderInit( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
+
+		/**
+		 * Center Slides
+		 */	
+		base.focalChange( 1 );
+		base.resizeElements();
+		
+		if ( postLoad ) {
 
 			/**
-			 * Set Initial Focal Point
+			 * Progressively Load Images
 			 */
-			var firstClass = elmnts.eq( 0 ).attr( 'class' );
-			elmnts.eq( 0 ).addClass( 'first' );
-			elmnts.eq( elmnts.length - 1 ).addClass( 'last' );
+			var firstLoad = sldr.find( '.'+base.sldrLoadSlides.shift().class_name );
+			var firstLoadCnt = base.config.sldrLoad;
+			base.ajaxLoad( firstLoad , firstLoadCnt , 'shift' );
+
+		} else {
 
 			/**
-			 * Fill Gaps (if any)
+			 * Activate Selectors
 			 */
-			base.fillGaps( sldr , elmntsHTML );
-
-			/**
-			 * Center Slides
-			 */				
-			var change  = base.focalChange( sldr , 1 );
 			if ( base.config.selectors != '' ) {
 				base.config.selectors.eq( 0 ).addClass( base.config.focalClass );	
-			}
-
-			base.resizeElementss( sldr );
-
-			if ( base.config.selectors != '' ) {
 				base.config.selectors.click( function(e) {
 					var th = $( this );
-					var change  = base.focalChange( sldr , th.index() + 1 );
-					var animate = base.animate( sldr , change );
-					console.log( change );
+					var change  = base.focalChange( th.index() + 1 , 'selectors' );
+					var animate = base.animate( change );
 					th.siblings().removeClass( base.config.focalClass );
 					th.addClass( base.config.focalClass );
 					e.preventDefault();
 				});
+
+				if ( base.config.sldrAuto ) {
+					base.config.selectors.bind( 'mouseenter' , function() {
+						base.sliderPause();
+					});
+					base.config.selectors.bind( 'mouseleave' , function() {
+						base.sliderTimer();
+					});
+				}
 			}
 
 			if ( base.config.nextSlide != '' ) {
@@ -123,54 +205,142 @@
 						base.config.selectors.removeClass( base.config.focalClass );
 						base.config.selectors.eq( base.callback.nextSlideNum - 1 ).addClass( base.config.focalClass );	
 					}	
-					var change  = base.focalChange( sldr , base.callback.nextSlideNum );
-					var animate = base.animate( sldr ,change );
+					var change  = base.focalChange( base.callback.nextSlideNum , 'next' );
+					var animate = base.animate( change );
 				});
+
+				if ( base.config.sldrAuto ) {
+					base.config.nextSlide.bind( 'mouseenter' , function() {
+						base.sliderPause();
+					});
+					base.config.nextSlide.bind( 'mouseleave' , function() {
+						base.sliderTimer();
+					});
+				}
 			}
-
 			if ( base.config.previousSlide != '' ) {
-
 				base.config.previousSlide.click( function(e) {
 					if ( base.config.selectors != '' ) {
 						base.config.selectors.removeClass( base.config.focalClass );
 						base.config.selectors.eq( base.callback.prevSlideNum - 1 ).addClass( base.config.focalClass );
 					}
-					var change  = base.focalChange( sldr , base.callback.prevSlideNum );
-					var animate = base.animate( sldr , change );
+					var change  = base.focalChange( base.callback.prevSlideNum , 'prev' );
+					var animate = base.animate( change );
 				});
+
+				if ( base.config.sldrAuto ) {
+					base.config.previousSlide.bind( 'mouseenter' , function() {
+						base.sliderPause();
+					});
+					base.config.previousSlide.bind( 'mouseleave' , function() {
+						base.sliderTimer();
+					});
+				}
 			}
 
-			$win.bind( 'resize' , function( e ) {   
-				resizeTim = setTimeout( function() {
-					base.fillGaps( sldr , elmntsHTML );
-					base.resizeElementss( sldr );
-					clearTimeout( resizeTim );
-				} , 500 );
+			if ( elmnts.length > 1 ) base.sliderTimer();
+
+			/**
+			 * Activate Resize
+			 */
+			$win.bind( 'resize' , function( e ) {  
+				base.$resizeTimers[base.config.sldrNumber] = setTimeout( function() {
+					base.sliderPause();
+					//base.fillGaps( base.elmntsHTML ); // need to rework this to work with post load
+					base.resizeElements();
+					if ( elmnts.length > 1 ) base.sliderTimer();
+				} , base.config.resizeDelay );
 			});
 
-			base.slideInit( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
+			base.resizeElements();
 
-		} catch ( err ) {
-			console.log( err.message );
+			base.sliderLoaded( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
 		}
 
+		
+
     };
+
+    /**
+     * Recursive function to progressively load in slides based on http request time for the images
+     * @param  {jquery object} elmnt       [description]
+     * @param  {number}        nextLoadNum [next slide to load]
+     * @param  {string}        method      ['shift' or 'pop' determines which slide to load in the array to pull from]
+     * @return void
+     */
+    base.ajaxLoad = function( elmnt , nextLoadNum , method ) {
+
+		var load     = elmnt.find( '.sldr-load' );
+		var loadSrc  = load.attr( 'src' );
+		var attrFind = [ 'class' , 'src' , 'alt' , 'width' , 'height' , 'data-src' ];
+		var loadImg, slideLoad, nextLoad, nextLoadNum;
+			var loadAttr = new Array();
+
+		for ( var i=0; i < attrFind.length; i++ ) {
+		    var thisAttr = ( load.attr( attrFind[i] ) ) ? load.attr( attrFind[i] ) : false;
+		    if ( thisAttr ) loadAttr.push( attrFind[i] + "='" + thisAttr + "'" );
+		}
+
+		if ( !loadSrc ) return;
+
+		load.replaceWith( '<img '+loadAttr.join(' ')+' >' );
+
+		$.ajax({ 
+			type          : 'GET',
+			url           : loadSrc,
+			async         : true,
+        	cache         : true,
+			success: function( data ) {
+				
+				loadImg = elmnt.find( 'img' );
+				loadImg.removeClass( 'sldr-load' );
+				
+				base.slideLoaded( { 'slide' : base.sldrSlides[nextLoadNum] , 'callback' : base.callback , 'config' : base.config } );
+				
+				if ( method == 'shift' ) {
+					slideLoad = base.sldrLoadSlides.shift();
+					method = 'pop'; 
+				} else if ( method == 'pop' ) {
+					slideLoad = base.sldrLoadSlides.pop();
+					method = 'shift';
+				}
+				
+				base.config.sldrLoad++;
+
+				if ( base.config.sldrLoad < base.sldrSlides.length ) {
+					nextLoad    = base.$el.find( '.' + slideLoad.class_name );
+					nextLoadNum = slideLoad.slideNum - 1;
+					base.ajaxLoad( nextLoad , nextLoadNum , method );
+				} else {
+					base.init();
+				}
+
+			}, 
+			error: function ( xhr, status ) {
+				console.log( xhr );
+				console.log( status );
+			}
+		});
+
+    }
     
     /**
-	  * [animate description]
-	  * @return {[type]} [description]
+	  * change the focus of the slider and animate it
+	  * @return void
 	  */
-	base.animate = function( sldr , change ) {
+	base.animate = function( change ) {
 		try {
-			if( base.config.animate != '' )
+			if( base.config.animate != '' && base.config.animate )
 			{
-				base.config.animate( sldr , change , { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
+				base.config.animate( base.$el , change , { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
 			} 
 			else
 			{
 				if (!change) return;
 
-				var wrp  = sldr.children();
+				var wrp  = base.$el.children();
+				var bwsr = base.config.isBrowser;
+				var easing;
 
 				// BEFORE ANIMATE
 				wrp.removeClass( 'animate' );
@@ -178,14 +348,50 @@
 				wrp.css( 'margin-left' , curr + change.shiftWidth + 'px' );
 				
 				// ANIMATE
-				setTimeout( function(){ 
+				base.$delayTimers[base.config.sliderNumber] = setTimeout( function() { 
 					wrp.addClass( 'animate' );
-					wrp.css( 'margin-left' , base.config.offset - change.currentFocalPoint );
-
+					if ( base.config.animateJQ || bwsr == 'MSIE 6' || bwsr == 'MSIE 7' || bwsr == 'MSIE 8' || bwsr == 'MSIE 9' || base.config.animate != false ) {
+						easing = ( $.easing && $.easing.easeInOutQuint ) ? 'easeInOutQuint' : 'linear';
+						wrp.animate({
+							marginLeft : base.config.offset - change.currentFocalPoint
+						} , 750 , easing );
+					} else {
+						wrp.css( 'margin-left' , base.config.offset - change.currentFocalPoint );
+					}
 					base.slideComplete( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
+				} , 1 ); // Tiny delay needed for slider to adjust
 
-				} , 1 );
 			}
+		} catch ( err ) {
+			console.log( err.message );
+		}
+	}
+
+	/**
+	 * change the focus of the slider without animating it
+	 * @param  {jquery selector object} the slide object
+	 * @param  {number} change [description]
+	 * @return void
+	 */
+	base.positionFocus = function( change ) {
+		try {
+
+			if (!change) return;
+
+			var wrp  = base.$el.children();
+			var bwsr = base.config.isBrowser;
+
+			// PREVENT ANIMATE
+			wrp.removeClass( 'animate' );
+			curr = parseFloat( wrp.css( 'margin-left' ) );
+			wrp.css( 'margin-left' , base.config.offset - change.currentFocalPoint );
+
+			// FOCUS
+			base.$delayTimers[base.config.sliderNumber] = setTimeout( function() { 
+				wrp.addClass( 'animate' );
+				base.slideComplete( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
+			} , base.config.resizeDelay + 1 ); // Tiny delay needed for slider to adjust
+
 		} catch ( err ) {
 			console.log( err.message );
 		}
@@ -199,17 +405,16 @@
 	/**
 	 * Function to move focal point of the slider to previous or next slide.
 	 * @param  {string} method ['prev' or 'previous' moves the slider backwards. Defaults to next.]
-	 * @return {[type]}        [description]
+	 * @return {object}        The callback of the slider including slide number, slide index, previous, next slides etc.
 	 */
-	base.focalChange = function( sldr , method ) {
+	base.focalChange = function( focalChangeNum , method ) {
 		try {
-			//var sldr       = $( this );
-			var wrp        = sldr.children();
+			method = typeof method !== 'undefined' ? method : 'default';
+			var wrp        = base.$el.children();
 			var elmnts     = wrp.children();
 			var focalElmnt = wrp.find( '> .'+base.config.focalClass );
 			var focalIndex = focalElmnt.index();
-			var nextFocalIndex, nextFocalPoint, prevFocalIndex, focalPoint, 
-			shiftSlide, shiftSlideClone, shiftSlideWidth, direction;
+			var nextFocalIndex, nextFocalPoint, prevFocalIndex, focalPoint, shiftSlide, shiftSlideClone, shiftSlideWidth, direction, slideClass;
 
 			base.slideStart( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
 
@@ -217,20 +422,22 @@
 			 * Find the nearest index of the focal point we want.
 			 * @type {integer}
 			 */
-
-			slideClass = base.sldrSlides[ method - 1 ].class_name; // 'class' is reserved var in javascript, throws errors in IE changed to 'class_name'
+			if ( !base.sldrSlides[ focalChangeNum - 1 ] ) return;
+			slideClass = base.sldrSlides[ focalChangeNum - 1 ].class_name;
 			slideClass = slideClass.split(' ');
 			slideClass = slideClass[ 0 ];
-
-			//console.log( slideClass );
-			//console.log( focalElmnt );
 
 			if ( focalElmnt.hasClass( slideClass ) ) return false;
 			
 			closerBehind  = elmnts.eq( focalIndex ).prevAll( '.' + slideClass + ':first' ).index();
 			closerInFront = elmnts.eq( focalIndex ).nextAll( '.' + slideClass + ':first' ).index();
 
-			if ( closerInFront != -1 && closerInFront - focalIndex < focalIndex - closerBehind ) {
+			if ( 
+				closerInFront != -1 
+				&& closerInFront - focalIndex < focalIndex - closerBehind 
+				|| closerInFront - focalIndex == focalIndex - closerBehind 
+				&& method != 'prev' 
+			) {
 				nextFocalIndex = closerInFront;
 			} else if ( closerBehind != -1 ) {
 				nextFocalIndex = closerBehind;
@@ -243,14 +450,14 @@
 			nextFocalPoint.addClass( base.config.focalClass );
 			
 			/**
-			 * Find the range of elments in the slider to cut and paste, making it symmetric.
+			 * Find the range of elments in the slider to cut and paste, making it symmetrical.
 			 * @type {Object}
 			 */
 			direction   = ( nextFocalIndex > parseInt( ( elmnts.length - 1 ) / 2 ) ) ? 'next' : 'prev';
 			sliceStart  = ( direction == 'prev' ) ? parseInt( ( ( elmnts.length - nextFocalIndex + 1 ) / 2 ) + nextFocalIndex + 2 ) : 0;
 			sliceEnd    = ( direction == 'prev' ) ? elmnts.length : parseInt( nextFocalIndex * 0.5 ) - 1;
 			elmntsSlice = elmnts.slice( sliceStart , sliceEnd );
-			elmntsClone = elmntsSlice.clone()
+			elmntsClone = elmntsSlice.clone();
 
 			/**
 			 * Find the width difference to shift the slider before animating.
@@ -280,25 +487,24 @@
 			currentFocalIndex = wrp.find( '> .'+base.config.focalClass ).index();
 			nextFocalIndex    = ( currentFocalIndex + 1 == elmnts.length ) ? 0 : currentFocalIndex + 1;
 			prevFocalIndex    = ( currentFocalIndex - 1 == -1 ) ? elmnts.length - 1 : currentFocalIndex - 1;
-			nextSlideNum      = ( method + 1 == base.sldrSlides.length + 1 ) ? 1 : method + 1;
-			prevSlideNum      = ( method - 1 == 0 ) ? base.sldrSlides.length : method - 1;
-			base.callback = { 
-				'sldr'              : base.$el,
-				'prevFocalIndex'    : prevFocalIndex,
-				'prevSlideNum'      : prevSlideNum,
-				'currentFocalIndex' : currentFocalIndex,
-				'currentClass'      : nextFocalPoint.attr( 'class' ),
-				'currentID'         : nextFocalPoint.attr( 'id' ),
-				'currentFocalPoint' : focalPoint,
-				'currentSlideNum'   : method,
-				'shiftWidth'        : shiftSlideWidth,
-				'nextFocalIndex'    : nextFocalIndex,
-				'nextSlideNum'      : nextSlideNum
-			}
+			nextSlideNum      = ( focalChangeNum + 1 == base.sldrSlides.length + 1 ) ? 1 : focalChangeNum + 1;
+			prevSlideNum      = ( focalChangeNum - 1 == 0 ) ? base.sldrSlides.length : focalChangeNum - 1;
+
+			base.callback.sldr              = base.$el;
+			base.callback.prevFocalIndex    = prevFocalIndex;
+			base.callback.prevSlideNum      = prevSlideNum;
+			base.callback.currentFocalIndex = currentFocalIndex;
+			base.callback.currentClass      = nextFocalPoint.attr( 'class' );
+			base.callback.currentID         = nextFocalPoint.attr( 'id' );
+			base.callback.currentFocalPoint = focalPoint;
+			base.callback.currentSlideNum   = focalChangeNum;
+			base.callback.shiftWidth        = shiftSlideWidth;
+			base.callback.nextFocalIndex    = nextFocalIndex;
+			base.callback.nextSlideNum      = nextSlideNum;
 
 			if ( base.config.toggle.length > 0 ) {
 				base.config.toggle.removeClass( base.config.focalClass );
-				base.config.toggle.eq( method - 1 ).addClass( base.config.focalClass );
+				base.config.toggle.eq( focalChangeNum - 1 ).addClass( base.config.focalClass );
 			}
 
 			return base.callback;
@@ -314,16 +520,29 @@
 	 * @param  {object} wrp        the container to place the markup in
 	 * @return {boolean}           returns true when finished
 	 */
-	base.fillGaps = function( sldr , elmntsHTML ) {
+	base.fillGaps = function( elmntsHTML ) {
 		try {
-			//var sldr     = $( this );
-			var sldrw    = sldr.width();
-			var wrp      = sldr.children();
-			var elmnt    = wrp.children();
-			var elmntw   = base.findWidth( elmnt );
+			var sldrw     = base.$el.width();
+			var wrp       = base.$el.children();
+			var elmnt     = wrp.children();
+			var elmntw    = base.findWidth( elmnt );
+			var lastClass = base.sldrSlides[base.sldrSlides.length - 1].class_name;
 			if ( elmntw < sldrw * 5 ) {
-				sldr.find( '.last' ).after( elmntsHTML );
-				base.fillGaps( sldr , elmntsHTML );
+
+				wrp.find( '.' + lastClass ).after( elmntsHTML );
+
+				//closerBehind  = elmnts.eq( focalIndex ).prevAll( '.' + slideClass + ':first' ).index();
+				//closerInFront = elmnts.eq( focalIndex ).nextAll( '.' + slideClass + ':first' ).index();
+
+				// if ( closerInFront != -1 && closerInFront - focalIndex < focalIndex - closerBehind ) {
+				// 	nextFocalIndex = closerInFront;
+				// } else if ( closerBehind != -1 ) {
+				// 	nextFocalIndex = closerBehind;
+				// } else {
+				// 	nextFocalIndex = $( '.' + slideClass ).index();
+				// }
+
+				base.fillGaps( elmntsHTML );
 			} else {
 				wrp.css( 'width' , elmntw );
 				return true;
@@ -341,7 +560,7 @@
 		try {
 			var wdth = 0;
 			elmnt.each( function( i ) {
-				wdth = wdth + elmnt.width();
+				wdth = wdth + $( elmnt[i] ).width();
 			});
 			return wdth;
 		} catch ( err ) {
@@ -356,89 +575,226 @@
 	 */
 	base.findFocalPoint = function() {
 		try {
-			sldr    = base.$el;
-			wrp     = sldr.children();
-			elmnts  = wrp.children();
-			fclsld  = sldr.find( '.'+base.config.focalClass );
-			fclsldw = fclsld.width() / 2;
-			fclindx = fclsld.index();
-			fclpnt  = fclsldw;
-			for ( var i = 0; i < fclindx; i++ ) {
-				fclpnt = fclpnt + elmnts.eq(i).width();
+			//sldr    = base.$el;
+			var wrp             = base.$el.children();
+			var elmnts          = wrp.children();
+			var focalSlide      = base.$el.find( '.'+base.config.focalClass );
+			var focalSlideWidth = focalSlide.width() / 2;
+			var focalIndex      = focalSlide.index();
+			var focalPoint      = focalSlideWidth;
+			for ( var i = 0; i < focalIndex; i++ ) {
+				focalPoint = focalPoint + elmnts.eq(i).width();
 			}
-			return fclpnt;
+			return focalPoint;
 		} catch ( err ) {
 			console.log( err.message );
 		}
 	}
 	
 	/**
-	 * [resizeElementss description]
-	 * @return {[type]} [description]
+	 * Actions to perform when the browser is resized. 
+	 * Holds the responsive actions of the slider.
+	 * @return void
 	 */
-	base.resizeElementss = function( sldr ) {
+	base.resizeElements = function() {
 		try {
-			//var sldr = base.$el;
-			wrp      = sldr.children();
-			elmnts   = wrp.children();
-			if ( base.config.sldWidth != '' ) { elmnts.css( 'width' , sldr.width() ); }
-			base.config.offset = sldr.width() / 2; // UPDATE THE OFFSET
+			var wrp      = base.$el.children();
+			var elmnts   = wrp.children();
+			
+			if ( base.config.sldrWidth == 'responsive' ) {
+				elmnts.css( 'width' , base.$el.width() );
+			} else if ( base.config.sldrWidth != '' ) {
+				elmnts.css( 'width' , base.config.sldrWidth );
+			}
+
+			base.config.offset = base.$el.width() / 2; // UPDATE THE OFFSET, need to change this to work on the config offset
+			
 			var change = { 
-				'currentFocalIndex' : sldr.find( '.'+base.config.focalClass ).index(),
+				'currentFocalIndex' : base.$el.find( '.'+base.config.focalClass ).index(),
 				'currentFocalPoint' : base.findFocalPoint(),
 				'shiftWidth'        : 0
 			}
-			base.animate( sldr , change );
+			
+			base.positionFocus( change );
+
 		} catch ( err ) {
 			console.log( err.message );
 		}
 	};
 
-	base.slideInit = function( args ) {
-		if( base.config.sldInit != '' )
+	/**
+	 * When the sldr is initiated, before the DOM is manipulated
+	 * @param  {object} args [the slides, callback, and config of the slider]
+	 * @return void
+	 */
+	base.sliderInit = function( args ) {
+		if( base.config.sldrInit != '' )
 		{
-			base.config.sldInit( args );
+			base.config.sldrInit( args );
 		}
 	}
 
+	/**
+	 * When individual slides are loaded
+	 * @param  {object} args [the slides, callback, and config of the slider]
+	 * @return void
+	 */
+	base.slideLoaded = function( args ) {
+		if( base.config.sldLoaded != '' )
+		{
+			base.config.sldLoaded( args );
+		}
+	}
+
+	/**
+	 * When the slider is loaded, after the DOM is manipulated
+	 * @param  {object} args [the slides, callback, and config of the slider]
+	 * @return void
+	 */
+	base.sliderLoaded = function( args ) {
+		if( base.config.sldrLoaded != '' )
+		{
+			base.config.sldrLoaded( args );
+		}
+	}
+
+	/**
+	 * Before the slides animate
+	 * @param  {object} args [the slides, callback, and config of the slider]
+	 * @return void
+	 */
 	base.slideStart = function( args ) {
-		if( base.config.sldStart != '' )
+		if( base.config.sldrStart != '' )
 		{
-			base.config.sldStart( args );
+			base.config.sldrStart( args );
 		}
 	}
 
+	/**
+	 * When the slide has completed animating
+	 * @param  {object} args [the slides, callback, and config of the slider]
+	 * @return void
+	 */
 	base.slideComplete = function( args ) {
-		if( base.config.sldComplete != '' )
+		if( base.config.sldrComplete != '' )
 		{
-			base.config.sldComplete( args );
+			base.config.sldrComplete( args );
 		}
 	}
 
+	// base.hashChange = function( args ) {
+	// 	if( base.config.hashChange != '' )
+	// 	{
+	// 		base.config.hashChange( args );
+	// 	}
+	// }
+
+	/**
+	 * [sliderTimer description]
+	 * @return void
+	 */
+	base.sliderTimer = function() {
+		if ( base.config.sldrAuto ) {
+			base.$sliderTimers[base.config.sldrNumber] = setTimeout( function() {
+
+				var change  = base.focalChange( base.$el , base.callback.nextSlideNum , 'next' );
+				var animate = base.animate( base.$el , change );
+				base.sliderTimer( base.$el );
+
+				if ( base.config.selectors != '' ) {
+					var selector = base.config.selectors.eq( base.callback.nextSlideNum - 2 );
+					selector.siblings().removeClass( base.config.focalClass );
+					selector.addClass( base.config.focalClass );
+				}
+
+			} , base.config.sldrTime )
+		}
+	}
+
+	/**
+	 * [sliderPause description]
+	 * @return void
+	 */
+	base.sliderPause = function() {
+		if ( base.config.sldrAuto ) {
+			clearTimeout( base.$sliderTimers[base.config.sldrNumber] );
+		}
+	}
+
+	/**
+	 * [evenNumber description]
+	 * @param  {[type]} num [description]
+	 * @return void
+	 */
 	base.evenNumber = function( num ) {
 		return ( num % 2 == 0 ) ? true : false;
+	}
+
+	/**
+	 * [browser description]
+	 * @return {[type]} [description]
+	 */
+	base.browser = function() {
+		if( navigator.userAgent.match('WebKit') != null ) {
+			base.config.isBrowser = 'Webkit';
+		} else if( navigator.userAgent.match('Gecko') != null ) {
+			base.config.isBrowser = 'Gecko';
+		} else if( navigator.userAgent.match('MSIE 6') != null ) {
+			base.config.isBrowser = 'MSIE 6';
+			base.config.isIE = true;
+		} else if( navigator.userAgent.match('MSIE 7') != null ) {
+			base.config.isBrowser = 'MSIE 7';
+			base.config.isIE = true;
+		} else if( navigator.userAgent.match('MSIE 8') != null ) {
+			base.config.isBrowser = 'MSIE 8';
+			base.config.isIE = true;
+		} else if( navigator.userAgent.match('MSIE 9') != null ) {
+			base.config.isBrowser = 'MSIE 9';
+			base.config.isIE = true;
+		}
 	}
     
     base.init();
   };
   
+  /**
+   * [defaultOptions description]
+   * @type {Object}
+   */
   $.sldr.defaultOptions = {
     focalClass    : 'focalPoint',
 	offset        : $(this).width() / 2,
 	selectors     : '',
 	toggle        : '',
-	nextSlide     : $(this).nextAll( '.sldr-nav.next:first' ),
-	previousSlide : $(this).nextAll( '.sldr-nav.prev:first' ),
-	sldStart      : '',
-	sldComplete   : '',
-	sldInit       : '',
-	sldWidth      : '',
-	animate       : ''
+	nextSlide     : '',
+	hashChange    : false,
+	previousSlide : '',
+	resizeDelay   : 1,
+	sldrNumber    : 0,
+	sldrLoad      : 0,
+	sldrStart     : '',
+	sldrComplete  : '',
+	sldrInit      : '',
+	sldLoaded     : '',
+	sldrLoaded    : '',
+	sldrWidth     : '',
+	animate       : '',
+	animateJQ     : false,
+	sldrAuto      : false, 
+	sldrTime      : 8000,
+	isBrowser     : navigator.userAgent,
+	isIE   		  : false
   };
   
+  /**
+   * [sldr description]
+   * @param  {[type]} options [description]
+   * @return {[type]}         [description]
+   */
   $.fn.sldr = function( options ) {
     return this.each( function() {
       ( new $.sldr( this , options ) );
+      $.sldr.defaultOptions.sldrNumber++;
     });
   };
   
