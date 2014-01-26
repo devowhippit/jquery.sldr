@@ -1,13 +1,18 @@
 /*
  * sldr
  * 
+<<<<<<< HEAD
  * {Description} sldr
+=======
+ * {Description} sldr.
+>>>>>>> 71465ee47ab9a3fc178f0e8e8728653367f8c2fb
  * 
  * Copyright (c) 2013 Devon Hirth
  * 
  * Version: 0.1
  * Minimum requirements: Developed with jQuery 1.10.2, May work with older versions.
  *
+<<<<<<< HEAD
  * {Terms of use}
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
@@ -41,6 +46,8 @@
 		th.css( 'height' , actionPanelHeight ).css( 'width' , width + 10 );
 	});
  * 
+=======
+>>>>>>> 71465ee47ab9a3fc178f0e8e8728653367f8c2fb
  */
 
 /**
