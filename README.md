@@ -6,7 +6,7 @@ jquery.sldr
 <ol>
 	<li><a href="#settings">Settings</a>. Flexible setup. Next, previous, pagination, and element toggle selector definitions.</li>
 	<li><a href="#example-setup">Setup</a>. Multiple slide width, visible stage, and fully responsive. </li>
-	<li><a href="#callbacks">Callbacks</a>. Callbacks on initialization, slide start, slide complete.</li>
+	<li><a href="#callbacks">Callbacks</a>. Callbacks on initialization, individual slide load (via <a href="#post-load">post load</a>), slide start, slide complete.</li>
 	<li><a href="#post-load">Post Load</a>. Post image load feature. Progressively loads images after the page is loaded.</li>
 	<li>¡To do! Animation Hook. Define your own animation.</li>
 	<li>Support for IE 7+, Chrome, Safari, Firefox, IOS 3+, Android 3+. Not tested in Opera or older versions of Chrome, Safari, Firefox.</li>
@@ -76,7 +76,7 @@ Each slide element requires a unique class.
 
 This CSS uses positioning to move the slide from left to right but alternate styling can be used to create different types of transitions.
 
-<pre>
+```html
 .sldr {
 	max-width: 825px;
 	margin: 0 auto;
@@ -98,12 +98,12 @@ This CSS uses positioning to move the slide from left to right but alternate sty
 	display: block;
 	width: 825px;
 }
-</pre>
+```
 
 
 <strong>jQuery:</strong>
 
-<pre>
+```html
 $( window ).load( function() {
 
 	$( '.sldr' ).each( function() {
@@ -127,13 +127,13 @@ $( window ).load( function() {
 	});
 
 });
-</pre>
+```
 
 
 callbacks
 ====
 
-<pre>
+```html
 /**
  * When the sldr is initiated, before the DOM is manipulated
  * @param {object} args the slides, callback, and config of the slider
@@ -168,7 +168,7 @@ function sldrStart( args ) { }
  * @return null
  **/
 function sldrComplete( args ) { }
-</pre>
+```
 
 
 callback arguments
@@ -176,7 +176,8 @@ callback arguments
 
 Slides return an object of the following items;
 
-<pre>{ 
+```html
+{ 
 	'slides' : { 
 		(array of slides) 
 	}, 
@@ -185,7 +186,8 @@ Slides return an object of the following items;
 	}, 
 	'config' : {
 		(all of the original settings described above) 
-}</pre>
+}
+```
 
 <strong>Slides:</strong>
 
