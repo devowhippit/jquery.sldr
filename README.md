@@ -76,7 +76,8 @@ Each slide element requires a unique class.
 		<li class="elmnt-four"><img src="img/Pink-Forest.jpg" width="1000" height="563"></li>
 	</ul>
 </div>
-</pre>```
+</pre>
+```
 
 
 CSS:
