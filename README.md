@@ -13,7 +13,7 @@ jquery.sldr
 </ol>
 
 
-To do:
+to do
 ====
 
 <ol>
@@ -26,7 +26,7 @@ To do:
 </ol>
 
 
-Settings:
+settings
 ====
 
 <table>
@@ -54,7 +54,7 @@ Settings:
 </table>
 
 
-Example Setup:
+example setup
 ====
 
 <strong>Markup:</strong>
@@ -132,7 +132,7 @@ $( window ).load( function() {
 </pre>
 
 
-Callbacks:
+callbacks
 ====
 
 <pre>
@@ -173,7 +173,7 @@ function sldrComplete( args ) { }
 </pre>
 
 
-Callback Arguments:
+callback arguments
 ====
 
 Slides return an object of the following items;
@@ -216,7 +216,7 @@ Slides return an object of the following items;
 </table>
 
 
-Post Load Setup:
+post load
 ====
 
 The post load image feature can progressively load images one by one after the page has finishied loading any non-slider images, scripts, etc. To take advantage of it only the markup needs to be changed. Replace images with a markup element with a class of 'sldr-load'. When the plugin sees these elements it will grab the attributes 'class' , 'src' , 'alt' , 'title' , 'width' or 'height' and apply them to the image when it's ready. Below is the sample markup;
