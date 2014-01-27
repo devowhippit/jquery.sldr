@@ -1,7 +1,7 @@
 /*
  * jquery.sldr
  * 
- * A content slider featuring resopnsive slides, flexible slide widths, callbacks, 
+ * A content slider featuring responsive slides, flexible slide widths, callbacks, 
  * and custom animation hooks.
  * 
  * Version: 0.1
