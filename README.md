@@ -1,7 +1,7 @@
 jquery.sldr
 ====
 
-Design Features
+Design Features (<a href="http://devowhippit.github.io/jquery.sldr/">the demo</a>):
 
 <ol>
 	<li>Multiple slide width.</li>
@@ -9,7 +9,6 @@ Design Features
 	<li>Responsive height and width.</li>
 </ol>
 
-<p><a href="http://devowhippit.github.io/jquery.sldr/">The demo</a>.</p>
 
 ====
 
