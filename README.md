@@ -4,10 +4,10 @@ jquery.sldr
 <strong>Features (<a href="http://devowhippit.github.io/jquery.sldr/">the demo</a>):</strong>
 
 <ol>
-	<li>Flexible setup. Next, previous, pagination, and element toggle selector definitions. <a href="#settings">Settings</a></li>
-	<li>Multiple slide width, visible stage, and fully responsive. <a href="#example-setup">Setup</a></li>
-	<li>Callbacks on initialization, slide start, slide complete. <a href="#callbacks">Callbacks</a></li>
-	<li>Post image load feature. Progressively loads images after the page is loaded. <a href="#post-load">Post Load</a></li>
+	<li><a href="#settings">Settings</a>. Flexible setup. Next, previous, pagination, and element toggle selector definitions.</li>
+	<li><a href="#example-setup">Setup</a>. Multiple slide width, visible stage, and fully responsive. </li>
+	<li><a href="#callbacks">Callbacks</a>. Callbacks on initialization, slide start, slide complete.</li>
+	<li><a href="#post-load">Post Load</a>. Post image load feature. Progressively loads images after the page is loaded.</li>
 	<li>¡To do! Animation Hook. Define your own animation.</li>
 	<li>Support for IE 7+, Chrome, Safari, Firefox, IOS 3+, Android 3+. Not tested in Opera or older versions of Chrome, Safari, Firefox.</li>
 </ol>
