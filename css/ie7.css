@@ -1,0 +1,20 @@
+.sldr {
+	max-width: 1000px;
+}
+
+.sldr > ul > li {
+	float: left;
+	display: block;
+	width: 1000px;
+}
+
+div.skew {
+ 	max-width: inherit;
+	filter: none;
+}
+
+div.skew > div.wrap {
+	max-width: inherit;
+	margin-left: 0;
+	filter: none;
+}

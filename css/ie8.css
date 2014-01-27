@@ -1,0 +1,10 @@
+div.skew {
+	-ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=1, M12=0.28674538575880865, M21=0, M22=1, SizingMethod='auto expand')";
+		filter: progid:DXImageTransform.Microsoft.Matrix(M11=1,M12=0.28674538575880865,M21=0,M22=1,SizingMethod='auto expand');
+}
+
+div.skew > div.wrap {
+	margin-left: -20.1%;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=1, M12=-0.2867453857588081, M21=0, M22=1, SizingMethod='auto expand')";
+		filter: progid:DXImageTransform.Microsoft.Matrix(M11=1,M12=-0.286745385759,M21=0,M22=1,SizingMethod='auto expand');
+}

@@ -1,101 +1,46 @@
 <!DOCTYPE html>
 <head>
 
-<style type="text/css">
+<title>jquery.sldr</title>
 
-body { margin: 0; background: #ECECEC; }
-
-ul {
-	color: #ECECEC;
-	text-align: center;
-	margin: 0;
-	padding: 0;
-	list-style-type: none;
-}
-
-ul.animate {
-	-webkit-transition: margin 500ms cubic-bezier(0.420, 0.000, 0.580, 1.000); 
-       -moz-transition: margin 500ms cubic-bezier(0.420, 0.000, 0.580, 1.000); 
-         -o-transition: margin 500ms cubic-bezier(0.420, 0.000, 0.580, 1.000); 
-            transition: margin 500ms cubic-bezier(0.420, 0.000, 0.580, 1.000); /* ease-in-out */	
-}
-
-li {
-	display: block;
-}
-
-.stge {
-	width: 100%;
-	/*max-width: 999px;*/
-	margin: 0 auto;
-	text-align: center;
-}
-	
-.sldr {
-	position: relative;
-	min-height: 200px;
-	overflow-x: scroll;
-}
-
-.sldr > ul {
-	min-height: 200px;
-}
-
-.sldr ul > li {
-	float: left;
-	min-width: 300px;
-	min-height: 200px;
-}
-
-.sldr ul > li.one {
-	background: #DD4849;
-}
-
-.sldr ul > li.two {
-	background: #868686;
-	min-width: inherit;
-	width: 100px;
-}
-
-.sldr ul > li.three {
-	background: #A5C25C;
-}
-
-.sldr ul > li.four {
-	background: #312727;
-}
-
-.nav.prev {
-	float: left;
-}
-
-.nav.next {
-	float: right;
-}
-
-</style>
+<link href="css/styles.css" rel="stylesheet">
+<!--[if lt IE 9]><link href="css/ie8.css" rel="stylesheet"><![endif]-->
+<!--[if lt IE 8]><link href="css/ie7.css" rel="stylesheet"><![endif]-->
 
 </head>
 
-<div class="stge">
+<div class="stage">
 
-<div id="SLDRONE" class="sldr">
-	<ul class="animate">
-		<li class="one"><div>Slider 1: Something In here</div></li>
-		<li class="two"><div>Slider 1: Another Something In here</div></li>
-	</ul>
-</div>
+	<h1>jQuery.sldr</h1>
+	<p><small>A fully responsive image slider. View on <a href="https://github.com/devowhippit/jquery.sldr">GitHub</a>.</small></p>
 
-<div id="SLDRTWO" class="sldr">
-	<ul>
-		<li class="one"><div>Slider 2: Something In here</div></li>
-		<li class="two"><div>Slider 2: Another Something In here</div></li>
-		<li class="three"><div>Slider 2: An odd amount of slides</div></li>
-	</ul>
-</div>
+	<div id="SLDR-ONE" class="sldr">
+		<ul class="wrp animate">
+			<li class="elmnt-one"><div class="skew"><div class="wrap"><img src="img/Lake.jpg" width="1000" height="563"></div></div></li>
+			<li class="elmnt-two"><div class="skew"><div class="wrap"><img src="img/Mountain-Range.jpg" width="1000" height="563"></div></div></li>
+			<li class="elmnt-three"><div class="skew"><div class="wrap"><img src="img/Mt-Fuji.jpg" width="1000" height="563"></div></div></li>
+			<li class="elmnt-four"><div class="skew"><div class="wrap"><img src="img/Pink-Forest.jpg" width="1000" height="563"></div></div></li>
+		</ul>
+	</div>
 
-<button class="sldr-prv sldr-nav prev">Previous</button>
-<button class="sldr-nxt sldr-nav next">Next</button>
+	<div class="clear"></div>
+
+	<button class="sldr-prv sldr-nav prev">Prev</button>
+	<button class="sldr-nxt sldr-nav next">Next</button>
+
+	<p>Scale browser to see responsive demo.</p>
+	<p style="float:left;">&#8596;&nbsp;</p>
+	<p style="float:right;">&nbsp;&#8596;</p>
+
+	<p><small>These images are jpgs masked using a CSS transform method (and a filter method for IE). They are completely responsive and support the following desktop browsers; Chrome, Safari, Firefox, IE 8+, and mobile browsers; IOS 3+, Android 4+. No transparent PNGs are needed.</small></p>
+
+	<div class="clear"></div>
+
+	<br>
+	<br>
+	<br>
+	<br>
+	<br>
 
 </div>
 
@@ -103,80 +48,77 @@ li {
 <script src="js/jquery.sldr.js"></script>
 <script>
 
-jQuery( document ).ready( function( $ ) {
-//jQuery( window ).load( function() {	
+$( window ).load( function() {
 
 	$( '.sldr' ).each( function() {
-		$( this ).sldr({
+		var th = $( this );
+		th.sldr({
 			focalClass    : 'focalPoint',
-			offset        : $( this ).width() / 2,
-			selectors     : $( '.in-page-nav ul > li' ),
-			nextSlide     : $( this ).nextAll( '.sldr-nav.next' ),
-			previousSlide : $( this ).nextAll( '.sldr-nav.prev' ),
-			sldInit       : slideInit
+			offset        : th.width() / 2,
+			sldrWidth     : 'responsive',
+			animateJQ     : false,
+			nextSlide     : th.nextAll( '.sldr-nav.next:first' ),
+			previousSlide : th.nextAll( '.sldr-nav.prev:first' ),
+			sldrInit      : sliderInit,
+			sldrStart     : slideStart,
+			sldrComplete  : slideComplete,
+			sldrLoaded    : sliderLoaded,
+			sldrAuto      : true,
+			sldrTime      : 6000,
+			hasChange     : true
 		});
 	});
 
 });
 
-
 /**
- * Callbacks
+ * Sldr Callbacks
  */
 
 /**
- * When the sldr is initiated
- * @param  {oject} args  the slides, callback, and config of the slider
+ * When the sldr is initiated, before the DOM is manipulated
+ * @param  {object} args the slides, callback, and config of the slider
  * @return null
  */
-function slideInit( args ) {
-	//console.log( args );
+function sliderInit( args ) {
+
 }
 
 /**
- * Before the slides animate
- * @param  {oject} args  the slides, callback, and config of the slider
+ * When individual slides are loaded
+ * @param  {object} args the slides, callback, and config of the slider
+ * @return null
+ */
+function slideLoaded( args ) {
+
+}
+
+/**
+ * When the full slider is loaded, after the DOM is manipulated
+ * @param  {object} args the slides, callback, and config of the slider
+ * @return null
+ */
+function sliderLoaded( args ) {
+
+}
+
+/**
+ * Before the slides change focal points
+ * @param  {object} args the slides, callback, and config of the slider
  * @return null
  */
 function slideStart( args ) {
-	//console.log( args );
+
 }
 
 /**
- * When the slide has completed animating
- * @param  {oject} args  the slides, callback, and config of the slider
+ * After the slides are done changing focal points
+ * @param  {object} args the slides, callback, and config of the slider
  * @return null
  */
 function slideComplete( args ) {
-	//console.log( args );
+
 }
 
-/**
- * Sample Animation Function 
- * (if you want to customize your own animation)
- * @param  {jquery object} sldr    the slider to animate
- * @param  {number}        change  the offset amount to change
- * @param  {oject}         args    the slides, callback, and config of the slider
- * @return null
- */
-function animate( sldr , change , args ) {
-	//console.log( args );
-	if (!change) return;
-
-	var wrp  = sldr.children();
-
-	// BEFORE ANIMATE
-	wrp.removeClass( 'animate' );
-	curr = parseFloat( wrp.css( 'margin-left' ) );
-	wrp.css( 'margin-left' , curr + change.shiftWidth + 'px' );
-	
-	// ANIMATE
-	setTimeout( function()
-	{ 
-		wrp.addClass( 'animate' );
-		wrp.css( 'margin-left' , args.config.offset - change.currentFocalPoint );
-		slideComplete( args );
-	} , 1 );
-}
 
 </script>
