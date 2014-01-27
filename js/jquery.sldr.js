@@ -4,7 +4,7 @@
  * A content slider featuring responsive slides, flexible slide widths, callbacks, 
  * and custom animation hooks.
  * 
- * Version: 0.1
+ * Version: 1.0
  * Minimum requirements: Developed with jQuery 1.10.2, May work with older versions.
  *
  * The MIT License (MIT)
