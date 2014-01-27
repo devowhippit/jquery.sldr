@@ -62,7 +62,6 @@ example setup
 Each slide element requires a unique class.
 
 ```html
-<pre>
 <div id="SLDR-ONE" class="sldr">
 	<ul class="wrp animate">
 		<li class="elmnt-one"><img src="img/Lake.jpg" width="1000" height="563"></li>
@@ -71,7 +70,6 @@ Each slide element requires a unique class.
 		<li class="elmnt-four"><img src="img/Pink-Forest.jpg" width="1000" height="563"></li>
 	</ul>
 </div>
-</pre>
 ```
 
 <strong>CSS:</strong>
@@ -202,7 +200,7 @@ Slides return an object of the following items;
 <strong>Callback:</strong>
 
 <table>
-<tr><td><strong>sldr</strong></td><td>jQuery Object of the slider.</td></tr> 
+<tr><td><strong>sldr</strong></td><td>jQuery object of the slider.</td></tr> 
 <tr><td><strong>prevFocalIndex</strong></td><td>The index() of the previous slide.</td></tr> 
 <tr><td><strong>prevSlideNum</strong></td><td>The slide number of the previous slide.</td></tr> 
 <tr><td><strong>currentFocalIndex</strong></td><td>The index() of the current slide.</td></tr> 
@@ -223,7 +221,6 @@ The post load image feature can progressively load images one by one after the p
 
 
 ```html
-<pre>
 <div id="SLDR-ONE" class="sldr">
 	<ul class="wrp animate">
 		<li class="elmnt-one"><div class="sldr-load" src="img/Lake.jpg" width="1000" height="563"></div></li>
@@ -232,5 +229,4 @@ The post load image feature can progressively load images one by one after the p
 		<li class="elmnt-four"><div class="sldr-load" src="img/Pink-Forest.jpg" width="1000" height="563"></div></li>
 	</ul>
 </div>
-</pre>
 ```
