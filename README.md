@@ -4,10 +4,10 @@ jquery.sldr
 <strong>Features (<a href="http://devowhippit.github.io/jquery.sldr/">the demo</a>):</strong>
 
 <ol>
-	<li>Multiple slide width, visible stage, and fully responsive.</li>
-	<li>Callbacks on initialization, slide start, slide complete.</li>
-	<li>Next, previous, pagination, and element toggle selector definitions.</li>
-	<li>Post image load feature. Progressively loads images after the page is loaded</li>
+	<li>Flexible setup. Next, previous, pagination, and element toggle selector definitions. <a href="#settings">Settings</a></li>
+	<li>Multiple slide width, visible stage, and fully responsive. <a href="#example-setup">Setup</a></li>
+	<li>Callbacks on initialization, slide start, slide complete. <a href="#callbacks">Callbacks</a></li>
+	<li>Post image load feature. Progressively loads images after the page is loaded. <a href="#post-load">Post Load</a></li>
 	<li>¡To do! Animation Hook. Define your own animation.</li>
 	<li>Support for IE 7+, Chrome, Safari, Firefox, IOS 3+, Android 3+. Not tested in Opera or older versions of Chrome, Safari, Firefox.</li>
 </ol>
@@ -57,8 +57,7 @@ Settings:
 Example Setup:
 ====
 
-
-Markup:
+<strong>Markup:</strong>
 
 Each slide element requires a unique class.
 
@@ -75,7 +74,7 @@ Each slide element requires a unique class.
 </pre>
 ```
 
-CSS:
+<strong>CSS:</strong>
 
 This CSS uses positioning to move the slide from left to right but alternate styling can be used to create different types of transitions.
 
@@ -104,7 +103,7 @@ This CSS uses positioning to move the slide from left to right but alternate sty
 </pre>
 
 
-jQuery:
+<strong>jQuery:</strong>
 
 <pre>
 $( window ).load( function() {
@@ -190,7 +189,7 @@ Slides return an object of the following items;
 		(all of the original settings described above) 
 }</pre>
 
-Slides:
+<strong>Slides:</strong>
 
 <table>
 <tr><td><strong>sld</strong></td><td>Slide jQuery object.</td></tr> 
@@ -200,7 +199,7 @@ Slides:
 <tr><td><strong>html</strong></td><td>Slide inner html()</td></tr> 
 </table>
 
-Callback:
+<strong>Callback:</strong>
 
 <table>
 <tr><td><strong>sldr</strong></td><td>jQuery Object of the slider.</td></tr> 
@@ -221,6 +220,7 @@ Post Load Setup:
 ====
 
 The post load image feature can progressively load images one by one after the page has finishied loading any non-slider images, scripts, etc. To take advantage of it only the markup needs to be changed. Replace images with a markup element with a class of 'sldr-load'. When the plugin sees these elements it will grab the attributes 'class' , 'src' , 'alt' , 'title' , 'width' or 'height' and apply them to the image when it's ready. Below is the sample markup;
+
 
 ```html
 <pre>
