@@ -25,6 +25,17 @@
 
 	<div class="clear"></div>
 
+	<div class="captions">
+	 <div class="focalPoint"><p><small>Lake</small></p></div>
+	 <div><p><small>Mountain Range</small></p></div>
+	 <div><p><small>Mt. Fuji</small></p></div>
+	 <div><p><small>Pink Forest</small></p></div>
+	</div>
+
+	<ul class="selectors">
+		<li class="focalPoint"><a href="">•</a></li><li><a href="">•</a></li><li><a href="">•</a></li><li><a href="">•</a></li>
+	</ul>
+
 	<button class="sldr-prv sldr-nav prev">Prev</button>
 	<button class="sldr-nxt sldr-nav next">Next</button>
 
@@ -32,7 +43,7 @@
 	<p style="float:left;">&#8596;&nbsp;</p>
 	<p style="float:right;">&nbsp;&#8596;</p>
 
-	<p><small>These images are jpgs masked using a CSS transform method (and a filter method for IE). They are completely responsive and support the following desktop browsers; Chrome, Safari, Firefox, IE 8+, and mobile browsers; IOS 3+, Android 4+. No transparent PNGs are needed.</small></p>
+	<p><small>These images are jpgs masked using a CSS transform method (and a filter method for IE). They are completely responsive and support the following desktop browsers; Chrome, Safari, Firefox, IE 8+, and mobile browsers; IOS 3+, Android 4+.</small></p>
 
 	<div class="clear"></div>
 
@@ -56,15 +67,16 @@ $( window ).load( function() {
 			focalClass    : 'focalPoint',
 			offset        : th.width() / 2,
 			sldrWidth     : 'responsive',
-			animateJQ     : false,
 			nextSlide     : th.nextAll( '.sldr-nav.next:first' ),
 			previousSlide : th.nextAll( '.sldr-nav.prev:first' ),
+			selectors     : th.nextAll( '.selectors:first' ).find( 'li' ),
+			toggle        : th.nextAll( '.captions:first' ).find( 'div' ),
 			sldrInit      : sliderInit,
 			sldrStart     : slideStart,
 			sldrComplete  : slideComplete,
 			sldrLoaded    : sliderLoaded,
 			sldrAuto      : true,
-			sldrTime      : 6000,
+			sldrTime      : 2000,
 			hasChange     : true
 		});
 	});
@@ -77,7 +89,7 @@ $( window ).load( function() {
 
 /**
  * When the sldr is initiated, before the DOM is manipulated
- * @param  {object} args the slides, callback, and config of the slider
+ * @param {object} args the slides, callback, and config of the slider
  * @return null
  */
 function sliderInit( args ) {
@@ -86,7 +98,7 @@ function sliderInit( args ) {
 
 /**
  * When individual slides are loaded
- * @param  {object} args the slides, callback, and config of the slider
+ * @param {object} args the slides, callback, and config of the slider
  * @return null
  */
 function slideLoaded( args ) {
@@ -95,7 +107,7 @@ function slideLoaded( args ) {
 
 /**
  * When the full slider is loaded, after the DOM is manipulated
- * @param  {object} args the slides, callback, and config of the slider
+ * @param {object} args the slides, callback, and config of the slider
  * @return null
  */
 function sliderLoaded( args ) {
@@ -104,7 +116,7 @@ function sliderLoaded( args ) {
 
 /**
  * Before the slides change focal points
- * @param  {object} args the slides, callback, and config of the slider
+ * @param {object} args the slides, callback, and config of the slider
  * @return null
  */
 function slideStart( args ) {
@@ -113,7 +125,7 @@ function slideStart( args ) {
 
 /**
  * After the slides are done changing focal points
- * @param  {object} args the slides, callback, and config of the slider
+ * @param {object} args the slides, callback, and config of the slider
  * @return null
  */
 function slideComplete( args ) {

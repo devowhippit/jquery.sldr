@@ -9,9 +9,7 @@ Design Features (<a href="http://devowhippit.github.io/jquery.sldr/">the demo</a
 	<li>Responsive height and width.</li>
 </ol>
 
-
 ====
-
 
 Dev Features:
 
@@ -22,9 +20,7 @@ Dev Features:
 	<li>¡To do! Animation Hook. Define your own animation.</li>
 </ol>
 
-
 ====
-
 
 To do:
 
@@ -38,7 +34,6 @@ To do:
 </ol>
 
 ====
-
 
 Settings:
 
@@ -65,3 +60,89 @@ Settings:
 <tr><td><strong>isBrowser     </strong></td><td>Variable for setting browser. Defaults to the navigator.userAgent.</td></tr>
 <tr><td><strong>isIE   		  </strong></td><td>Variable for Internet Explorer. Defaults to false. Will be set to true based on navigator.userAgent.</td></tr>
 </table>
+
+====
+
+Callbacks:
+
+<pre>
+/**
+ * When the sldr is initiated, before the DOM is manipulated
+ * @param {object} args the slides, callback, and config of the slider
+ * @return null
+ **/
+function sldrInt( args ) { }
+
+/**
+ * When individual slides are loaded
+ * @param {object} args the slides, callback, and config of the slider
+ * @return null
+ **/
+function sldLoaded( args ) { }
+
+/**
+ * When the full slider is loaded, after the DOM is manipulated
+ * @param {object} args the slides, callback, and config of the slider
+ * @return null
+ **/
+function sldrLoaded( args ) { }
+
+/**
+ * Before the slides change focal points
+ * @param {object} args the slides, callback, and config of the slider
+ * @return null
+ **/
+function sldrStart( args ) { }
+
+/**
+ * After the slides are done changing focal points
+ * @param {object} args the slides, callback, and config of the slider
+ * @return null
+ **/
+function sldrComplete( args ) { }
+</pre>
+
+====
+
+Callback Arguments:
+
+Slides return an object of the following items;
+
+<pre>{ 
+	'slides' : { 
+		(array of slides) 
+	}, 
+	'callback' : {
+		(the previous, current, next slide variables)
+	}, 
+	'config' : {
+		(all of the original settings described above) 
+}</pre>
+
+Slides:
+
+<table>
+<tr><td><strong>sld</strong></td><td>Slide jQuery object.</td></tr> 
+<tr><td><strong>slideNum</strong></td><td>Slide number.</td></tr> 
+<tr><td><strong>id</strong></td><td>Slide id.</td></tr> 
+<tr><td><strong>class_name</strong></td><td>Slide class.</td></tr> 
+<tr><td><strong>html</strong></td><td>Slide inner html()</td></tr> 
+</table>
+
+Callback:
+
+<table>
+<tr><td><strong>sldr</strong></td><td>jQuery Object of the slider.</td></tr> 
+<tr><td><strong>prevFocalIndex</strong></td><td>The index() of the previous slide.</td></tr> 
+<tr><td><strong>prevSlideNum</strong></td><td>The slide number of the previous slide.</td></tr> 
+<tr><td><strong>currentFocalIndex</strong></td><td>The index() of the current slide.</td></tr> 
+<tr><td><strong>currentClass</strong></td><td>The class of the current slide.</td></tr> 
+<tr><td><strong>currentID</strong></td><td>The id of the current slide</td></tr> 
+<tr><td><strong>currentFocalPoint</strong></td><td>The pixel distance from the left of the slide group to the center.</td></tr> 
+<tr><td><strong>currentSlideNum</strong></td><td>The slide number of the current slide</td></tr> 
+<tr><td><strong>shiftWidth</strong></td><td>The amount of change from one slide to the next.</td></tr> 
+<tr><td><strong>nextFocalIndex</strong></td><td>The index() of the next slide.</td></tr> 
+<tr><td><strong>nextSlideNum</strong></td><td>The slide number of the next slide.</td></tr> 
+</table>
+
+====

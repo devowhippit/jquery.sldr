@@ -39,12 +39,12 @@
  * 5. Rework Fill gaps to work with post load images.
  *
  * slides.each( function( i ) {
-		var th = $( this );
-		var thImg = th.find( 'img' );
-		var ratio = thImg.attr( 'height' ) / thImg.attr( 'width' );
-		var width = actionPanelHeight / ratio;
-		th.css( 'height' , actionPanelHeight ).css( 'width' , width + 10 );
-	});
+ *		var th = $( this );
+ *		var thImg = th.find( 'img' );
+ *		var ratio = thImg.attr( 'height' ) / thImg.attr( 'width' );
+ *		var width = actionPanelHeight / ratio;
+ *		th.css( 'height' , actionPanelHeight ).css( 'width' , width + 10 );
+ * });
  * 
  */
 ( function( $ ) {
@@ -349,7 +349,7 @@ $.sldr = function( el , options ) {
 				// ANIMATE
 				base.$delayTimers[base.config.sliderNumber] = setTimeout( function() { 
 					wrp.addClass( 'animate' );
-					if ( base.config.animateJQ || bwsr == 'MSIE 6' || bwsr == 'MSIE 7' || bwsr == 'MSIE 8' || bwsr == 'MSIE 9' || base.config.animate != false ) {
+					if ( base.config.animateJquery || bwsr == 'MSIE 6' || bwsr == 'MSIE 7' || bwsr == 'MSIE 8' || bwsr == 'MSIE 9' || base.config.animate != false ) {
 						easing = ( $.easing && $.easing.easeInOutQuint ) ? 'easeInOutQuint' : 'linear';
 						wrp.animate({
 							marginLeft : base.config.offset - change.currentFocalPoint
@@ -777,7 +777,7 @@ $.sldr = function( el , options ) {
 	sldrLoaded    : '',
 	sldrWidth     : '',
 	animate       : '',
-	animateJQ     : false,
+	animateJquery : false,
 	sldrAuto      : false, 
 	sldrTime      : 8000,
 	isBrowser     : navigator.userAgent,
