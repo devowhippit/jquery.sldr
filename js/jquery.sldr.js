@@ -271,7 +271,7 @@ $.sldr = function( el , options ) {
 
 		var load     = elmnt.find( '.sldr-load' );
 		var loadSrc  = load.attr( 'src' );
-		var attrFind = [ 'class' , 'src' , 'alt' , 'width' , 'height' , 'data-src' ];
+		var attrFind = [ 'class' , 'src' , 'alt' , 'title' , 'width' , 'height' ];
 		var loadImg, slideLoad, nextLoad, nextLoadNum;
 			var loadAttr = new Array();
 

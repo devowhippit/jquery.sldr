@@ -1,26 +1,24 @@
 jquery.sldr
 ====
 
-Features (<a href="http://devowhippit.github.io/jquery.sldr/">the demo</a>):
+<strong>Features (<a href="http://devowhippit.github.io/jquery.sldr/">the demo</a>):</strong>
 
 <ol>
-	<li>Multiple slide width.</li>
-	<li>Visible stage.</li>
-	<li>Responsive height and width.</li>
-	<li>Support for IE 7+, Chrome, Safari, Firefox, IOS 3+, Android 3+. Not tested in Opera or older versions of Chrome, Safari, Firefox.</li>
+	<li>Multiple slide width, visible stage, and fully responsive.</li>
 	<li>Callbacks on initialization, slide start, slide complete.</li>
 	<li>Next, previous, pagination, and element toggle selector definitions.</li>
+	<li>Post image load feature. Progressively loads images after the page is loaded</li>
 	<li>¡To do! Animation Hook. Define your own animation.</li>
+	<li>Support for IE 7+, Chrome, Safari, Firefox, IOS 3+, Android 3+. Not tested in Opera or older versions of Chrome, Safari, Firefox.</li>
 </ol>
 
 
-====
-
 To do:
+====
 
 <ol>
 	<li>Make base.resizeElements work with offset option.</li>
-	<li>Responsive Height Option. By default, the slider's height is responsive if the using 100% width block images. May include function however to set the style of the slider's width.</li>
+	<li>Responsive Height Option. By default, the slider's height is responsive if the using 100% width block images. May include function however to set the style of the slider's height.</li>
 	<li>Rework base.fillGaps to work with post loaded images. </li>
 	<li>Establish method for passing updated args on to callback functions if using the Animation Hook.</li>	
 	<li>A shadow box mode.</li>
@@ -28,9 +26,8 @@ To do:
 </ol>
 
 
-====
-
 Settings:
+====
 
 <table>
 <tr><td><strong>focalClass</strong></td><td>The classname of the focal point of the slider (or 'active' slide). Defaults to 'focalPoint'.</td></tr>
@@ -57,9 +54,8 @@ Settings:
 </table>
 
 
-====
-
 Example Setup:
+====
 
 
 Markup:
@@ -78,7 +74,6 @@ Each slide element requires a unique class.
 </div>
 </pre>
 ```
-
 
 CSS:
 
@@ -137,9 +132,9 @@ $( window ).load( function() {
 });
 </pre>
 
-====
 
 Callbacks:
+====
 
 <pre>
 /**
@@ -179,9 +174,8 @@ function sldrComplete( args ) { }
 </pre>
 
 
-====
-
 Callback Arguments:
+====
 
 Slides return an object of the following items;
 
@@ -223,7 +217,20 @@ Callback:
 </table>
 
 
+Post Load Setup:
 ====
 
-Post Load Setup:
+The post load image feature can progressively load images one by one after the page has finishied loading any non-slider images, scripts, etc. To take advantage of it only the markup needs to be changed. Replace images with a markup element with a class of 'sldr-load'. When the plugin sees these elements it will grab the attributes 'class' , 'src' , 'alt' , 'title' , 'width' or 'height' and apply them to the image when it's ready. Below is the sample markup;
 
+```html
+<pre>
+<div id="SLDR-ONE" class="sldr">
+	<ul class="wrp animate">
+		<li class="elmnt-one"><div class="sldr-load" src="img/Lake.jpg" width="1000" height="563"></div></li>
+		<li class="elmnt-two"><div class="sldr-load" src="img/Mountain-Range.jpg" width="1000" height="563"></div></li>
+		<li class="elmnt-three"><div class="sldr-load" src="img/Mt-Fuji.jpg" width="1000" height="563"></div></li>
+		<li class="elmnt-four"><div class="sldr-load" src="img/Pink-Forest.jpg" width="1000" height="563"></div></li>
+	</ul>
+</div>
+</pre>
+```
