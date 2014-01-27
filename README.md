@@ -66,7 +66,8 @@ Markup:
 
 Each slide element requires a unique class.
 
-<pre>```html
+```html
+<pre>
 <div id="SLDR-ONE" class="sldr">
 	<ul class="wrp animate">
 		<li class="elmnt-one"><img src="img/Lake.jpg" width="1000" height="563"></li>
@@ -74,8 +75,8 @@ Each slide element requires a unique class.
 		<li class="elmnt-three"><img src="img/Mt-Fuji.jpg" width="1000" height="563"></li>
 		<li class="elmnt-four"><img src="img/Pink-Forest.jpg" width="1000" height="563"></li>
 	</ul>
-</div>```
-</pre>
+</div>
+</pre>```
 
 
 CSS:
