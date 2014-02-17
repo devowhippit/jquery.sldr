@@ -9,7 +9,7 @@ jquery.sldr
 	<li><a href="#callbacks">Callbacks</a>. Callbacks on initialization, individual slide load (via <a href="#post-load">post load</a>), slide start, slide complete.</li>
 	<li><a href="#post-load">Post Load</a>. Post image load feature. Progressively loads images after the page is loaded.</li>
 	<li>¡To do! Animation Hook. Define your own animation.</li>
-	<li>Support for IE 7+, Chrome, Safari, Firefox, IOS 3+, Android 3+. Not tested in Opera or older versions of Chrome, Safari, Firefox.</li>
+	<li>Support for IE 7+, Chrome, Safari, Firefox, IOS 3+, Android 3+. Not tested in Opera or older versions of Chrome, Safari, Firefox. Easing supported with jquery.easing.1.3.js.</li>
 </ol>
 
 

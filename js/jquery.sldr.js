@@ -206,6 +206,7 @@ $.sldr = function( el , options ) {
 					}	
 					var change  = base.focalChange( base.callback.nextSlideNum , 'next' );
 					var animate = base.animate( change );
+					e.preventDefault();
 				});
 
 				if ( base.config.sldrAuto ) {
@@ -225,6 +226,7 @@ $.sldr = function( el , options ) {
 					}
 					var change  = base.focalChange( base.callback.prevSlideNum , 'prev' );
 					var animate = base.animate( change );
+					e.preventDefault();
 				});
 
 				if ( base.config.sldrAuto ) {
