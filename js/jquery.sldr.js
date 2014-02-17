@@ -122,7 +122,7 @@ $.sldr = function( el , options ) {
 					'sld'        : slide,
 					'slideNum'   : i,
 					'id'         : slide.attr( 'id' ),
-					'class_name' : slide.attr( 'class' ),  // 'class' is reserved var in javascript, throws errors in IE changed to 'class_name'
+					'class_name' : slide.attr( 'class' ).split(' ')[0],
 					'html'       : slide.html()
 				});
 
@@ -131,7 +131,7 @@ $.sldr = function( el , options ) {
 					base.sldrLoadSlides.push({
 						'slideNum'   : i,
 						'id'         : slide.attr( 'id' ),
-						'class_name' : slide.attr( 'class' ),  // 'class' is reserved var in javascript, throws errors in IE changed to 'class_name'
+						'class_name' : slide.attr( 'class' ).split(' ')[0],
 						'html'       : slide.html()
 					});
 				}
