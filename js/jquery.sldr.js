@@ -696,8 +696,8 @@ $.sldr = function( el , options ) {
 		if ( base.config.sldrAuto ) {
 			base.$sliderTimers[base.config.sldrNumber] = setTimeout( function() {
 
-				var change  = base.focalChange( base.$el , base.callback.nextSlideNum , 'next' );
-				var animate = base.animate( base.$el , change );
+				var change  = base.focalChange( base.callback.nextSlideNum , 'next' );
+				var animate = base.animate( change );
 				base.sliderTimer( base.$el );
 
 				if ( base.config.selectors != '' ) {
