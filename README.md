@@ -59,7 +59,7 @@ example setup
 
 <strong>Markup:</strong>
 
-Each slide element requires a unique class.
+Each slide element requires at least one unique class that must appear first in the attribute value.
 
 ```html
 <div id="SLDR-ONE" class="sldr">
