@@ -37,10 +37,10 @@ button {
 }
 
 ul.animate {
-	-webkit-transition: margin 0.75s cubic-bezier(0.860, 0.000, 0.070, 1.000); 
-       -moz-transition: margin 0.75s cubic-bezier(0.860, 0.000, 0.070, 1.000); 
-         -o-transition: margin 0.75s cubic-bezier(0.860, 0.000, 0.070, 1.000); 
-            transition: margin 0.75s cubic-bezier(0.860, 0.000, 0.070, 1.000); /* ease-in-out */	
+	-webkit-transition: margin 1s cubic-bezier(0.860, 0.000, 0.070, 1.000); 
+       -moz-transition: margin 1s cubic-bezier(0.860, 0.000, 0.070, 1.000); 
+         -o-transition: margin 1s cubic-bezier(0.860, 0.000, 0.070, 1.000); 
+            transition: margin 1s cubic-bezier(0.860, 0.000, 0.070, 1.000); /* ease-in-out */	
 }
 
 .stage {
@@ -71,13 +71,7 @@ div.skew {
 	margin: 0 auto;
 
 	display: block;
-
 	overflow: hidden;
-
-	-webkit-backface-visibility: hidden;
-        -ms-backface-visibility: hidden;
-       -moz-backface-visibility: hidden;
-            backface-visibility: hidden;
 
 	-webkit-transform: skewX(16deg);
        -moz-transform: skewX(16deg);
@@ -87,13 +81,7 @@ div.skew {
 
 div.skew > div.wrap {
 	display: block;
-
 	overflow: hidden;
-
-	-webkit-backface-visibility: hidden;
-	    -ms-backface-visibility: hidden;
-	   -moz-backface-visibility: hidden;
-	        backface-visibility: hidden;
 
 	-webkit-transform: skewX(-16deg);
 	   -moz-transform: skewX(-16deg);
