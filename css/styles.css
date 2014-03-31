@@ -37,10 +37,10 @@ button {
 }
 
 ul.animate {
-	-webkit-transition: margin 1s cubic-bezier(0.860, 0.000, 0.070, 1.000); 
-       -moz-transition: margin 1s cubic-bezier(0.860, 0.000, 0.070, 1.000); 
-         -o-transition: margin 1s cubic-bezier(0.860, 0.000, 0.070, 1.000); 
-            transition: margin 1s cubic-bezier(0.860, 0.000, 0.070, 1.000); /* ease-in-out */	
+	-webkit-transition: -webkit-transform 0.75s cubic-bezier(0.860, 0.000, 0.070, 1.000); 
+       -moz-transition: transform 0.75s cubic-bezier(0.860, 0.000, 0.070, 1.000); 
+         -o-transition: transform 0.75s cubic-bezier(0.860, 0.000, 0.070, 1.000); 
+            transition: transform 0.75s cubic-bezier(0.860, 0.000, 0.070, 1.000); /* ease-in-out */	
 }
 
 .stage {
