@@ -262,7 +262,7 @@ $.sldr = function( el , options ) {
 				base.coordinatedifference = base.benchcoordinate.x - base.cursorcoordinate.x;
 				if ( base.coordinatedifference > 0 )
 					change = base.focalChange( base.callback.nextSlideNum , 'next' );
-				else
+				else if ( base.coordinatedifference < 0 )
 					change = base.focalChange( base.callback.prevSlideNum , 'prev' );
 				base.animate( change );
 			});
