@@ -1,7 +1,12 @@
 jquery.sldr
 ====
 
-<strong>Features (<a href="http://devowhippit.github.io/jquery.sldr/">the demo</a>):</strong>
+updates
+====
+v1.1 : added touchswipe, hardware accelerated animation, optimized positioning function to remove glitch in IOS, removed redundant DOM selectors, modified responsive function to update wrapper width on resize
+
+features (<a href="http://devowhippit.github.io/jquery.sldr/">the demo</a>)
+====
 
 <ol>
 	<li><a href="#settings">Settings</a>. Flexible setup. Next, previous, pagination, and element toggle selector definitions.</li>
@@ -20,9 +25,8 @@ to do
 	<li>Make base.resizeElements work with offset option.</li>
 	<li>Responsive Height Option. By default, the slider's height is responsive if the using 100% width block images. May include function however to set the style of the slider's height.</li>
 	<li>Rework base.fillGaps to work with post loaded images. </li>
-	<li>Establish method for passing updated args on to callback functions if using the Animation Hook.</li>	
+	<li>Establish method for passing updated args on to callback functions if using the Animation Hook.</li>
 	<li>A shadow box mode.</li>
-	<li>Click Drag/Swipe pagination for mobile.</li>
 </ol>
 
 

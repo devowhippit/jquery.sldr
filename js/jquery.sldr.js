@@ -4,7 +4,7 @@
  * A content slider featuring responsive slides, flexible slide widths, callbacks, 
  * and custom animation hooks.
  * 
- * Version: 1.0
+ * Version: 1.1
  * Minimum requirements: Developed with jQuery 1.10.2, May work with older versions.
  *
  * The MIT License (MIT)
@@ -53,30 +53,33 @@ var $win = $( window );
 
 $.sldr = function( el , options ) {
 
-  	/**
-  	 * 1. To avoid scope issues, use 'base' instead of 'this.'
-  	 * 2. Add Access to jQuery element.
-  	 * 3. Add Access to DOM element.
-  	 * 4. Add a reverse reference to the DOM object.
-  	 */
-    var base = this;
-    base.$el = $(el);
-    base.el  = el;
-    base.$el.data( "sldr" , base );
+	var base         = this;
+	base.$el         = $( el );
+	base.el          = el;
+	base.$elwrp = $( el ).children();
+	base.$el.data( "sldr" , base );
 
-    /**
-     * Plugin Vars
-     */
-    base.callback       = new Array();
-    base.sldrSlides     = new Array();
-    base.sldrLoadSlides = new Array();
-    base.$sliderTimers  = new Array();
+	/**
+	 * Plugin Vars
+	 */
+	base.callback       = new Array();
+	base.sldrSlides     = new Array();
+	base.sldrLoadSlides = new Array();
+	base.$sliderTimers  = new Array();
 	base.$resizeTimers  = new Array();
 	base.$delayTimers   = new Array();
 
 	base.wrp            = base.$el.children();
 	base.elmnts         = base.wrp.children();
 	base.elmntsHTML     = base.wrp.html();
+
+	base.benchcoordinate      = {};
+	base.prevcoordinate       = {};
+	base.cursorcoordinate     = {};
+	base.thiscoordinate       = {};
+	base.coordinatedifference = 0;
+	base.dragdifference       = 0;
+	base.trackmouse           = false;
 
 	/**
 	 * Initializing function
@@ -89,7 +92,7 @@ $.sldr = function( el , options ) {
 		base.browser();
 
 		var sldr       = base.$el;
-		var wrp        = sldr.children();
+		var wrp        = base.$elwrp;
 		var elmnts     = wrp.children();
 		var elmntsHTML = wrp.html();
 		var postLoad   = false;
@@ -101,17 +104,17 @@ $.sldr = function( el , options ) {
 		if ( base.sldrSlides == '' ) {
 
 			base.callback = { 
-				'sldr' : base.$el,
-				'prevFocalIndex' : '',
-				'prevSlideNum' : '',
+				'sldr'              : base.$el,
+				'prevFocalIndex'    : '',
+				'prevSlideNum'      : '',
 				'currentFocalIndex' : '',
-				'currentClass' : '',
-				'currentID' : '',
+				'currentClass'      : '',
+				'currentID'         : '',
 				'currentFocalPoint' : '',
-				'currentSlideNum' : '',
-				'shiftWidth' : '',
-				'nextFocalIndex' : '',
-				'nextSlideNum' : ''
+				'currentSlideNum'   : '',
+				'shiftWidth'        : '',
+				'nextFocalIndex'    : '',
+				'nextSlideNum'      : ''
 			};
 
 			for ( var i = 1; i < elmnts.length + 1; i++ ) {
@@ -122,7 +125,7 @@ $.sldr = function( el , options ) {
 					'sld'        : slide,
 					'slideNum'   : i,
 					'id'         : slide.attr( 'id' ),
-					'class_name' : slide.attr( 'class' ).split(' ')[0],
+					'class_name' : slide.attr( 'class' ).split(' ')[0], 
 					'html'       : slide.html()
 				});
 
@@ -178,11 +181,11 @@ $.sldr = function( el , options ) {
 			 * Activate Selectors
 			 */
 			if ( base.config.selectors != '' ) {
-				base.config.selectors.eq( 0 ).addClass( base.config.focalClass );	
+				base.config.selectors.eq( 0 ).addClass( base.config.focalClass );
 				base.config.selectors.click( function(e) {
 					var th = $( this );
 					var change  = base.focalChange( th.index() + 1 , 'selectors' );
-					var animate = base.animate( change );
+					base.animate( change );
 					th.siblings().removeClass( base.config.focalClass );
 					th.addClass( base.config.focalClass );
 					e.preventDefault();
@@ -205,7 +208,7 @@ $.sldr = function( el , options ) {
 						base.config.selectors.eq( base.callback.nextSlideNum - 1 ).addClass( base.config.focalClass );	
 					}	
 					var change  = base.focalChange( base.callback.nextSlideNum , 'next' );
-					var animate = base.animate( change );
+					base.animate( change );
 					e.preventDefault();
 				});
 
@@ -225,7 +228,7 @@ $.sldr = function( el , options ) {
 						base.config.selectors.eq( base.callback.prevSlideNum - 1 ).addClass( base.config.focalClass );
 					}
 					var change  = base.focalChange( base.callback.prevSlideNum , 'prev' );
-					var animate = base.animate( change );
+					base.animate( change );
 					e.preventDefault();
 				});
 
@@ -239,12 +242,37 @@ $.sldr = function( el , options ) {
 				}
 			}
 
+			base.$elwrp.bind( 'mousemove touchmove' , base.coordinatehandler );
+
+			setInterval( base.coordinateevents , 1 );
+
+			base.$elwrp.bind( 'mousedown touchstart' , function( event ) {
+				event.preventDefault();
+				base.trackmouse = true;
+				if ( event.originalEvent.touches !== undefined )
+					base.benchcoordinate = { x : event.originalEvent.touches[0].pageX , y : event.originalEvent.touches[0].pageY };
+				else 
+					base.benchcoordinate = { x : event.clientX , y : event.clientY };
+			});
+
+			base.$elwrp.bind( 'mouseup touchend' , function( event ) {
+				var change;
+				event.preventDefault();
+				base.trackmouse = false;
+				base.coordinatedifference = base.benchcoordinate.x - base.cursorcoordinate.x;
+				if ( base.coordinatedifference > 0 )
+					change = base.focalChange( base.callback.nextSlideNum , 'next' );
+				else
+					change = base.focalChange( base.callback.prevSlideNum , 'prev' );
+				base.animate( change );
+			});
+
 			if ( elmnts.length > 1 ) base.sliderTimer();
 
 			/**
 			 * Activate Resize
 			 */
-			$win.bind( 'resize' , function( e ) {  
+			$win.bind( 'resize' , function( e ) {
 				base.$resizeTimers[base.config.sldrNumber] = setTimeout( function() {
 					base.sliderPause();
 					//base.fillGaps( base.elmntsHTML ); // need to rework this to work with post load
@@ -258,18 +286,16 @@ $.sldr = function( el , options ) {
 			base.sliderLoaded( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
 		}
 
-		
+	};
 
-    };
-
-    /**
-     * Recursive function to progressively load in slides based on http request time for the images
-     * @param  {jquery object} elmnt       [description]
-     * @param  {number}        nextLoadNum [next slide to load]
-     * @param  {string}        method      ['shift' or 'pop' determines which slide to load in the array to pull from]
-     * @return void
-     */
-    base.ajaxLoad = function( elmnt , nextLoadNum , method ) {
+	/**
+	 * Recursive function to progressively load in slides based on http request time for the images
+	 * @param  {jquery object} elmnt       [description]
+	 * @param  {number}        nextLoadNum [next slide to load]
+	 * @param  {string}        method      ['shift' or 'pop' determines which slide to load in the array to pull from]
+	 * @return void
+	 */
+	base.ajaxLoad = function( elmnt , nextLoadNum , method ) {
 
 		var load     = elmnt.find( '.sldr-load' );
 		var loadSrc  = load.attr( 'src' );
@@ -278,8 +304,8 @@ $.sldr = function( el , options ) {
 			var loadAttr = new Array();
 
 		for ( var i=0; i < attrFind.length; i++ ) {
-		    var thisAttr = ( load.attr( attrFind[i] ) ) ? load.attr( attrFind[i] ) : false;
-		    if ( thisAttr ) loadAttr.push( attrFind[i] + "='" + thisAttr + "'" );
+			var thisAttr = ( load.attr( attrFind[i] ) ) ? load.attr( attrFind[i] ) : false;
+			if ( thisAttr ) loadAttr.push( attrFind[i] + "='" + thisAttr + "'" );
 		}
 
 		if ( !loadSrc ) return;
@@ -287,11 +313,11 @@ $.sldr = function( el , options ) {
 		load.replaceWith( '<img '+loadAttr.join(' ')+' >' );
 
 		$.ajax({ 
-			type          : 'GET',
-			url           : loadSrc,
-			async         : true,
-        	cache         : true,
-			success: function( data ) {
+			type    : 'GET',
+			url     : loadSrc,
+			async   : true,
+			cache   : true,
+			success : function( data ) {
 				
 				loadImg = elmnt.find( 'img' );
 				loadImg.removeClass( 'sldr-load' );
@@ -316,57 +342,54 @@ $.sldr = function( el , options ) {
 					base.init();
 				}
 
-			}, 
+			},
 			error: function ( xhr, status ) {
 				console.log( xhr );
 				console.log( status );
 			}
 		});
 
-    }
-    
-    /**
+	};
+
+	/**
 	  * change the focus of the slider and animate it
 	  * @return void
 	  */
 	base.animate = function( change ) {
 		try {
-			if( base.config.animate != '' && base.config.animate )
-			{
+
+			// return;
+
+			if ( base.config.animate != '' && base.config.animate ) {
+
 				base.config.animate( base.$el , change , { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
-			} 
-			else
-			{
-				if (!change) return;
 
-				var wrp  = base.$el.children();
-				var bwsr = base.config.isBrowser;
-				var easing;
+			} else {
 
-				// BEFORE ANIMATE
-				wrp.removeClass( 'animate' );
-				curr = parseFloat( wrp.css( 'margin-left' ) );
-				wrp.css( 'margin-left' , curr + change.shiftWidth + 'px' );
-				
+				if ( !change ) return;
+
+				var curr, tf, xtf, easing;
+
 				// ANIMATE
 				base.$delayTimers[base.config.sliderNumber] = setTimeout( function() { 
-					wrp.addClass( 'animate' );
-					if ( base.config.animateJquery || bwsr == 'MSIE 6' || bwsr == 'MSIE 7' || bwsr == 'MSIE 8' || bwsr == 'MSIE 9' || base.config.animate != false ) {
+					base.$elwrp.addClass( 'animate' );
+					if ( base.config.animateJquery || base.config.isBrowser == 'MSIE 6' || base.config.isBrowser == 'MSIE 7' || base.config.isBrowser == 'MSIE 8' || base.config.isBrowser == 'MSIE 9' || base.config.animate != false ) {
 						easing = ( $.easing && $.easing.easeInOutQuint ) ? 'easeInOutQuint' : 'linear';
-						wrp.animate({
+						base.$elwrp.animate({
 							marginLeft : base.config.offset - change.currentFocalPoint
 						} , 750 , easing );
 					} else {
-						wrp.css( 'margin-left' , base.config.offset - change.currentFocalPoint );
+						curr = base.config.offset - change.currentFocalPoint;
+						base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d( ' + curr + 'px , 0 , 0 )' );
 					}
 					base.slideComplete( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
-				} , 1 ); // Tiny delay needed for slider to adjust
+				} , 100 ); // Tiny delay needed for slider to adjust
 
 			}
 		} catch ( err ) {
 			console.log( err.message );
 		}
-	}
+	};
 
 	/**
 	 * change the focus of the slider without animating it
@@ -379,13 +402,22 @@ $.sldr = function( el , options ) {
 
 			if (!change) return;
 
-			var wrp  = base.$el.children();
+			var wrp  = base.$elwrp;
 			var bwsr = base.config.isBrowser;
+			var focus;
 
 			// PREVENT ANIMATE
 			wrp.removeClass( 'animate' );
-			curr = parseFloat( wrp.css( 'margin-left' ) );
-			wrp.css( 'margin-left' , base.config.offset - change.currentFocalPoint );
+
+			if ( base.config.animateJquery || bwsr == 'MSIE 6' || bwsr == 'MSIE 7' || bwsr == 'MSIE 8' || bwsr == 'MSIE 9' || base.config.animate != false ) {
+				// GET MARGIN PROPERTY
+				wrp.css( 'margin-left' , base.config.offset - change.currentFocalPoint );
+			} else {
+				// GET TRANSFORM PROPERTY
+				if ( wrp.css( base.config.cssPrefix + 'transform' ) == 'none' ) wrp.css( base.config.cssPrefix + 'transform' , 'translate3d( 0 , 0 , 0 )' );
+				focus = base.config.offset - change.currentFocalPoint;
+				wrp.css( base.config.cssPrefix + 'transform' , 'translate3d(' + focus + 'px , 0  , 0 )' );
+			}
 
 			// FOCUS
 			base.$delayTimers[base.config.sliderNumber] = setTimeout( function() { 
@@ -396,7 +428,7 @@ $.sldr = function( el , options ) {
 		} catch ( err ) {
 			console.log( err.message );
 		}
-	}
+	};
 
 
 	/**********************************************************
@@ -411,9 +443,9 @@ $.sldr = function( el , options ) {
 	base.focalChange = function( focalChangeNum , method ) {
 		try {
 			method = typeof method !== 'undefined' ? method : 'default';
-			var wrp        = base.$el.children();
-			var elmnts     = wrp.children();
-			var focalElmnt = wrp.find( '> .'+base.config.focalClass );
+			// var wrp        = base.$elwrp;
+			var elmnts     = base.$elwrp.children();
+			var focalElmnt = base.$elwrp.find( '> .' + base.config.focalClass );
 			var focalIndex = focalElmnt.index();
 			var nextFocalIndex, nextFocalPoint, prevFocalIndex, focalPoint, shiftSlide, shiftSlideClone, shiftSlideWidth, direction, slideClass;
 
@@ -471,13 +503,29 @@ $.sldr = function( el , options ) {
 			shiftSlideWidth = ( direction == 'prev' ) ? -( shiftSlideWidth ) : shiftSlideWidth;
 
 			/**
+			 * Shift the slider so the transition will appear seamless
+			 */
+			base.$elwrp.removeClass( 'animate' );
+			if ( base.config.animateJquery || base.config.isBrowser == 'MSIE 6' || base.config.isBrowser == 'MSIE 7' || base.config.isBrowser == 'MSIE 8' || base.config.isBrowser == 'MSIE 9' || base.config.animate != false ) {
+				// GET MARGIN PROPERTY
+				curr = parseFloat( base.$elwrp.css( 'margin-left' ) );
+				base.$elwrp.css( 'margin-left' , curr + shiftSlideWidth + 'px' );
+			} else {
+				// GET TRANSFORM PROPERTY
+				if ( base.$elwrp.css( base.config.cssPrefix + 'transform' ) == 'none' ) base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d( 0 , 0 , 0 )' );
+				xtf  = parseInt( base.getTranslatePosition( base.$elwrp.css( base.config.cssPrefix + 'transform' ) , 4 ) );
+				curr = xtf + shiftSlideWidth;
+				base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d( ' + curr + 'px , 0 , 0 )' );
+			}
+
+			/**
 			 * Remove/Append/Prepend Slides back to slider.
 			 */
 			elmnts.slice( sliceStart , sliceEnd ).remove();
 			if ( direction == 'prev' || direction == 'previous' ) {
-				wrp.prepend( elmntsClone );
+				base.$elwrp.prepend( elmntsClone );
 			} else {
-				wrp.append( elmntsClone );
+				base.$elwrp.append( elmntsClone );
 			}
 
 			/**
@@ -485,11 +533,11 @@ $.sldr = function( el , options ) {
 			 * @type {Object}
 			 */
 			focalPoint        = base.findFocalPoint();
-			currentFocalIndex = wrp.find( '> .'+base.config.focalClass ).index();
-			nextFocalIndex    = ( currentFocalIndex + 1 == elmnts.length ) ? 0 : currentFocalIndex + 1;
-			prevFocalIndex    = ( currentFocalIndex - 1 == -1 ) ? elmnts.length - 1 : currentFocalIndex - 1;
+			currentFocalIndex = base.$elwrp.find( '> .' + base.config.focalClass ).index();
+			nextFocalIndex    = ( currentFocalIndex + 1 == elmnts.length )           ? 0 : currentFocalIndex + 1;
+			prevFocalIndex    = ( currentFocalIndex - 1 == -1 )                      ? elmnts.length - 1 : currentFocalIndex - 1;
 			nextSlideNum      = ( focalChangeNum + 1 == base.sldrSlides.length + 1 ) ? 1 : focalChangeNum + 1;
-			prevSlideNum      = ( focalChangeNum - 1 == 0 ) ? base.sldrSlides.length : focalChangeNum - 1;
+			prevSlideNum      = ( focalChangeNum - 1 == 0 )                          ? base.sldrSlides.length : focalChangeNum - 1;
 
 			base.callback.sldr              = base.$el;
 			base.callback.prevFocalIndex    = prevFocalIndex;
@@ -513,7 +561,7 @@ $.sldr = function( el , options ) {
 		} catch ( err ) {
 			console.log( err.message );
 		}
-	}
+	};
 
 	/**
 	 * Recursive function to make slider fill the gaps of the stage
@@ -524,17 +572,14 @@ $.sldr = function( el , options ) {
 	base.fillGaps = function( elmntsHTML ) {
 		try {
 			var sldrw     = base.$el.width();
-			var wrp       = base.$el.children();
+			var wrp       = base.$elwrp;
 			var elmnt     = wrp.children();
-			var elmntw    = base.findWidth( elmnt );
+			var elmntw    = base.findWidth( elmnt ); 
 			var lastClass = base.sldrSlides[base.sldrSlides.length - 1].class_name;
 			if ( elmntw < sldrw * 5 ) {
-
 				wrp.find( '.' + lastClass ).after( elmntsHTML );
-
 				//closerBehind  = elmnts.eq( focalIndex ).prevAll( '.' + slideClass + ':first' ).index();
 				//closerInFront = elmnts.eq( focalIndex ).nextAll( '.' + slideClass + ':first' ).index();
-
 				// if ( closerInFront != -1 && closerInFront - focalIndex < focalIndex - closerBehind ) {
 				// 	nextFocalIndex = closerInFront;
 				// } else if ( closerBehind != -1 ) {
@@ -542,7 +587,6 @@ $.sldr = function( el , options ) {
 				// } else {
 				// 	nextFocalIndex = $( '.' + slideClass ).index();
 				// }
-
 				base.fillGaps( elmntsHTML );
 			} else {
 				wrp.css( 'width' , elmntw );
@@ -551,7 +595,7 @@ $.sldr = function( el , options ) {
 		} catch ( err ) {
 			console.log( err.message );
 		}
-	}
+	};
 
 	/**
 	 * Find the width of a set of elements
@@ -567,17 +611,15 @@ $.sldr = function( el , options ) {
 		} catch ( err ) {
 			console.log( err.message );
 		}
-	}
+	};
 
 	/**
-	 * Fid the focal point of the slider, determined
-	 * by the class name 'focalPoint'
+	 * Find the focal point of the slider, by class name 'focalPoint'
 	 * @return {integer} the x position of the focal point
 	 */
 	base.findFocalPoint = function() {
 		try {
-			//sldr    = base.$el;
-			var wrp             = base.$el.children();
+			var wrp             = base.$elwrp;
 			var elmnts          = wrp.children();
 			var focalSlide      = base.$el.find( '.'+base.config.focalClass );
 			var focalSlideWidth = focalSlide.width() / 2;
@@ -590,37 +632,80 @@ $.sldr = function( el , options ) {
 		} catch ( err ) {
 			console.log( err.message );
 		}
-	}
+	};
 	
 	/**
-	 * Actions to perform when the browser is resized. 
-	 * Holds the responsive actions of the slider.
+	 * Functions to perform when the browser is resized
 	 * @return void
 	 */
 	base.resizeElements = function() {
 		try {
-			var wrp      = base.$el.children();
-			var elmnts   = wrp.children();
-			
+			var wrp     = base.$elwrp;
+			var elmnts  = wrp.children();
+			var elmwdth = base.findWidth( elmnts );
+			var wrpwdth = parseInt( wrp.css( 'width' ).slice( 0 , -2 ) );
+
 			if ( base.config.sldrWidth == 'responsive' ) {
 				elmnts.css( 'width' , base.$el.width() );
+				if ( elmwdth > wrpwdth ) wrp.css( 'width' , elmwdth );
 			} else if ( base.config.sldrWidth != '' ) {
 				elmnts.css( 'width' , base.config.sldrWidth );
 			}
-
 			base.config.offset = base.$el.width() / 2; // UPDATE THE OFFSET, need to change this to work on the config offset
-			
-			var change = { 
-				'currentFocalIndex' : base.$el.find( '.'+base.config.focalClass ).index(),
+			var change = {
+				'currentFocalIndex' : base.$el.find( '.' + base.config.focalClass ).index(),
 				'currentFocalPoint' : base.findFocalPoint(),
 				'shiftWidth'        : 0
-			}
-			
+			};
 			base.positionFocus( change );
 
 		} catch ( err ) {
 			console.log( err.message );
 		}
+	};
+
+	/**
+	 * Updates the coordinates for click drag or touch drag 
+	 * @param  {object} event the event object created on touchstart or mousemove
+	 * @return null
+	 */
+	base.coordinatehandler = function( event ) {
+		event = event || window.event; // IE-ism
+		// base.preventselect( event );
+		if ( event.originalEvent.touches !== undefined )
+			base.cursorcoordinate = { x : event.originalEvent.touches[0].pageX , y : event.originalEvent.touches[0].pageY };
+		else 
+			base.cursorcoordinate = { x : event.clientX , y : event.clientY };
+	};
+	
+	/**
+	 * Updates the previous coordinates if there is movement on click drag or touch drag
+	 * @return {[type]} [description]
+	 */
+	base.coordinateevents = function() {
+		if ( !base.trackmouse ) return;
+		base.thiscoordinate = base.cursorcoordinate;
+		if ( base.prevcoordinate != base.thiscoordinate ) {
+			base.prevcoordinate = base.thiscoordinate;
+			// xtf  = parseInt( base.getTranslatePosition( base.$el.children().css( base.config.cssPrefix + 'transform' ) , 4 ) );
+			// base.dragdifference = base.benchcoordinate.x - base.prevcoordinate.x;
+			// curr = xtf - base.dragdifference;
+			// base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d( ' + curr + 'px , 0 , 0 )' );
+			// console.log( base.thiscoordinate.x + ' ' + base.thiscoordinate.y );
+		}
+	};
+
+	/**
+	 * Prevents selection being made on click drag or touch drag
+	 * @param  {object} event the event object created on touchstart or mousemove
+	 * @return null
+	 */
+	base.preventselect = function( event ) {
+		if ( event.stopPropagation ) event.stopPropagation();
+		if ( event.preventDefault )  event.preventDefault();
+		event.cancelBubble = true;
+		event.returnValue  = false;
+		return false;
 	};
 
 	/**
@@ -633,7 +718,7 @@ $.sldr = function( el , options ) {
 		{
 			base.config.sldrInit( args );
 		}
-	}
+	};
 
 	/**
 	 * When individual slides are loaded
@@ -645,7 +730,7 @@ $.sldr = function( el , options ) {
 		{
 			base.config.sldLoaded( args );
 		}
-	}
+	};
 
 	/**
 	 * When the slider is loaded, after the DOM is manipulated
@@ -657,7 +742,7 @@ $.sldr = function( el , options ) {
 		{
 			base.config.sldrLoaded( args );
 		}
-	}
+	};
 
 	/**
 	 * Before the slides animate
@@ -669,7 +754,7 @@ $.sldr = function( el , options ) {
 		{
 			base.config.sldrStart( args );
 		}
-	}
+	};
 
 	/**
 	 * When the slide has completed animating
@@ -681,7 +766,7 @@ $.sldr = function( el , options ) {
 		{
 			base.config.sldrComplete( args );
 		}
-	}
+	};
 
 	// base.hashChange = function( args ) {
 	// 	if( base.config.hashChange != '' )
@@ -710,36 +795,50 @@ $.sldr = function( el , options ) {
 
 			} , base.config.sldrTime )
 		}
-	}
+	};
 
 	/**
-	 * [sliderPause description]
+	 * Pauses slider by clearing it's timer
 	 * @return void
 	 */
 	base.sliderPause = function() {
 		if ( base.config.sldrAuto ) {
 			clearTimeout( base.$sliderTimers[base.config.sldrNumber] );
 		}
-	}
+	};
 
 	/**
-	 * [evenNumber description]
-	 * @param  {[type]} num [description]
-	 * @return void
+	 * Check if number is even
+	 * @param  {number} num Number to check
+	 * @return boolean
 	 */
 	base.evenNumber = function( num ) {
 		return ( num % 2 == 0 ) ? true : false;
-	}
+	};
 
 	/**
-	 * [browser description]
-	 * @return {[type]} [description]
+	 * Disect and return the value of a desired property in 'matrix(0, 0, 0, 0, 0, 0)' string format
+	 * @param  {string} tf          matrix string
+	 * @param  {number} matrixindex index of matrix desired
+	 * @return {string}             matrix value string
+	 */
+	base.getTranslatePosition = function( tf , matrixindex ) {
+		tf  = tf.slice( 7 , -1 ); // remove 'matrix(' and ')' from string
+		tf  = tf.split( ', ' );   // create array of matrix
+		return tf[ matrixindex ]; // return value of desired matrix
+	};
+
+	/**
+	 * Get Browser and Set URL Prefix
+	 * @return null
 	 */
 	base.browser = function() {
 		if( navigator.userAgent.match('WebKit') != null ) {
 			base.config.isBrowser = 'Webkit';
+			base.config.cssPrefix = '-webkit-';
 		} else if( navigator.userAgent.match('Gecko') != null ) {
 			base.config.isBrowser = 'Gecko';
+			// base.config.cssPrefix = '-moz-';
 		} else if( navigator.userAgent.match('MSIE 6') != null ) {
 			base.config.isBrowser = 'MSIE 6';
 			base.config.isIE = true;
@@ -752,6 +851,7 @@ $.sldr = function( el , options ) {
 		} else if( navigator.userAgent.match('MSIE 9') != null ) {
 			base.config.isBrowser = 'MSIE 9';
 			base.config.isIE = true;
+			base.config.cssPrefix = '-ms-';
 		}
 	}
     
@@ -783,7 +883,8 @@ $.sldr = function( el , options ) {
 	sldrAuto      : false, 
 	sldrTime      : 8000,
 	isBrowser     : navigator.userAgent,
-	isIE   		  : false
+	isIE          : false,
+	cssPrefix     : ''
   };
   
   /**
