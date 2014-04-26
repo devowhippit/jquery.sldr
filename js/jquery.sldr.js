@@ -27,35 +27,18 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * **************
- *     TO DOS
- * **************
- *
- * 1. Responsive Height (Leave up to css?)
- * 2. Animation Callback for custom transitions
- * 3. Shadow Box Mode???
- * 4. Make Slider.Width() offset dynamic in base.resizeElements
- * 5. Rework Fill gaps to work with post load images.
- *
- * slides.each( function( i ) {
- *		var th = $( this );
- *		var thImg = th.find( 'img' );
- *		var ratio = thImg.attr( 'height' ) / thImg.attr( 'width' );
- *		var width = actionPanelHeight / ratio;
- *		th.css( 'height' , actionPanelHeight ).css( 'width' , width + 10 );
- * });
  * 
  */
+
 ( function( $ ) {
 
 var $win = $( window );
 
 $.sldr = function( el , options ) {
 
-	var base         = this;
-	base.$el         = $( el );
-	base.el          = el;
+	var base    = this;
+	base.$el    = $( el );
+	base.el     = el;
 	base.$elwrp = $( el ).children();
 	base.$el.data( "sldr" , base );
 
@@ -80,6 +63,9 @@ $.sldr = function( el , options ) {
 	base.coordinatedifference = 0;
 	base.dragdifference       = 0;
 	base.trackmouse           = false;
+	base.pagescrollY          = 0;
+
+	base.transformposition = 0;
 
 	/**
 	 * Initializing function
@@ -125,7 +111,7 @@ $.sldr = function( el , options ) {
 					'sld'        : slide,
 					'slideNum'   : i,
 					'id'         : slide.attr( 'id' ),
-					'class_name' : slide.attr( 'class' ).split(' ')[0], 
+					'class_name' : slide.attr( 'class' ).split(' ')[0],
 					'html'       : slide.html()
 				});
 
@@ -165,189 +151,139 @@ $.sldr = function( el , options ) {
 		 */	
 		base.focalChange( 1 );
 		base.resizeElements();
-		
-		if ( postLoad ) {
 
-			/**
-			 * Progressively Load Images
-			 */
-			var firstLoad = sldr.find( '.'+base.sldrLoadSlides.shift().class_name );
-			var firstLoadCnt = 0;
-			base.ajaxLoad( firstLoad , firstLoadCnt , 'shift' );
+		/**
+		 * Activate Selectors
+		 */
+		if ( base.config.selectors != '' ) {
+			base.config.selectors.eq( 0 ).addClass( base.config.focalClass );
+			base.config.selectors.click( function(e) {
+				var th = $( this );
+				var change  = base.focalChange( th.index() + 1 , 'selectors' );
+				base.animate( change );
+				th.siblings().removeClass( base.config.focalClass );
+				th.addClass( base.config.focalClass );
+				e.preventDefault();
+			});
 
-		} else {
-
-			/**
-			 * Activate Selectors
-			 */
-			if ( base.config.selectors != '' ) {
-				base.config.selectors.eq( 0 ).addClass( base.config.focalClass );
-				base.config.selectors.click( function(e) {
-					var th = $( this );
-					var change  = base.focalChange( th.index() + 1 , 'selectors' );
-					base.animate( change );
-					th.siblings().removeClass( base.config.focalClass );
-					th.addClass( base.config.focalClass );
-					e.preventDefault();
+			if ( base.config.sldrAuto ) {
+				base.config.selectors.bind( 'mouseenter' , function() {
+					base.sliderPause();
 				});
-
-				if ( base.config.sldrAuto ) {
-					base.config.selectors.bind( 'mouseenter' , function() {
-						base.sliderPause();
-					});
-					base.config.selectors.bind( 'mouseleave' , function() {
-						base.sliderTimer();
-					});
-				}
-			}
-
-			if ( base.config.nextSlide != '' ) {
-				base.config.nextSlide.click( function(e) {
-					if ( base.config.selectors != '' ) {
-						base.config.selectors.removeClass( base.config.focalClass );
-						base.config.selectors.eq( base.callback.nextSlideNum - 1 ).addClass( base.config.focalClass );	
-					}	
-					var change  = base.focalChange( base.callback.nextSlideNum , 'next' );
-					base.animate( change );
-					e.preventDefault();
+				base.config.selectors.bind( 'mouseleave' , function() {
+					base.sliderTimer();
 				});
-
-				if ( base.config.sldrAuto ) {
-					base.config.nextSlide.bind( 'mouseenter' , function() {
-						base.sliderPause();
-					});
-					base.config.nextSlide.bind( 'mouseleave' , function() {
-						base.sliderTimer();
-					});
-				}
 			}
-			if ( base.config.previousSlide != '' ) {
-				base.config.previousSlide.click( function(e) {
-					if ( base.config.selectors != '' ) {
-						base.config.selectors.removeClass( base.config.focalClass );
-						base.config.selectors.eq( base.callback.prevSlideNum - 1 ).addClass( base.config.focalClass );
-					}
-					var change  = base.focalChange( base.callback.prevSlideNum , 'prev' );
-					base.animate( change );
-					e.preventDefault();
+		}
+
+		if ( base.config.nextSlide != '' ) {
+			base.config.nextSlide.click( function(e) {
+				if ( base.config.selectors != '' ) {
+					base.config.selectors.removeClass( base.config.focalClass );
+					base.config.selectors.eq( base.callback.nextSlideNum - 1 ).addClass( base.config.focalClass );	
+				}	
+				var change  = base.focalChange( base.callback.nextSlideNum , 'next' );
+				base.animate( change );
+				e.preventDefault();
+			});
+
+			if ( base.config.sldrAuto ) {
+				base.config.nextSlide.bind( 'mouseenter' , function() {
+					base.sliderPause();
 				});
-
-				if ( base.config.sldrAuto ) {
-					base.config.previousSlide.bind( 'mouseenter' , function() {
-						base.sliderPause();
-					});
-					base.config.previousSlide.bind( 'mouseleave' , function() {
-						base.sliderTimer();
-					});
-				}
+				base.config.nextSlide.bind( 'mouseleave' , function() {
+					base.sliderTimer();
+				});
 			}
+		}
 
-			base.$elwrp.bind( 'mousemove touchmove' , base.coordinatehandler );
+		if ( base.config.previousSlide != '' ) {
+			base.config.previousSlide.click( function(e) {
+				if ( base.config.selectors != '' ) {
+					base.config.selectors.removeClass( base.config.focalClass );
+					base.config.selectors.eq( base.callback.prevSlideNum - 1 ).addClass( base.config.focalClass );
+				}
+				var change  = base.focalChange( base.callback.prevSlideNum , 'prev' );
+				base.animate( change );
+				e.preventDefault();
+			});
 
-			setInterval( base.coordinateevents , 1 );
+			if ( base.config.sldrAuto ) {
+				base.config.previousSlide.bind( 'mouseenter' , function() {
+					base.sliderPause();
+				});
+				base.config.previousSlide.bind( 'mouseleave' , function() {
+					base.sliderTimer();
+				});
+			}
+		}
+
+		if ( base.config.swipeDragDesktop || base.isMobile() ) {
+
+			base.$elwrp.bind( 'mousemove touchmove' , base.coordinateevents );
 
 			base.$elwrp.bind( 'mousedown touchstart' , function( event ) {
+				var xtf;
+
+				if ( base.pagescrollY !== window.pageYOffset ) return;
+
 				event.preventDefault();
 				base.trackmouse = true;
-				if ( event.originalEvent.touches !== undefined )
-					base.benchcoordinate = { x : event.originalEvent.touches[0].pageX , y : event.originalEvent.touches[0].pageY };
-				else 
-					base.benchcoordinate = { x : event.clientX , y : event.clientY };
+				base.$elwrp.removeClass( 'animate' );
+				base.transformposition = parseInt( base.getTranslatePosition( base.$elwrp.css( base.config.cssPrefix + 'transform' ) , 4 ) );
+				if ( event.originalEvent.touches !== undefined ) {
+					base.benchcoordinate = { x : event.originalEvent.touches[0].pageX , y : event.originalEvent.touches[0].pageY , trans : base.transformposition };
+				} else {
+					base.benchcoordinate = { x : event.clientX , y : event.clientY , trans : base.transformposition };
+				}
+				base.prevcoordinate = base.benchcoordinate;
+				base.coordinateevents( event );
 			});
 
 			base.$elwrp.bind( 'mouseup touchend' , function( event ) {
 				var change;
+
+				if ( base.pagescrollY !== window.pageYOffset ) return;
+				
 				event.preventDefault();
 				base.trackmouse = false;
 				base.coordinatedifference = base.benchcoordinate.x - base.cursorcoordinate.x;
-				if ( base.coordinatedifference > 0 )
+				if ( base.coordinatedifference > 0 && base.coordinatedifference > base.$el.width() / base.config.swipeDragCoefficient ) {
 					change = base.focalChange( base.callback.nextSlideNum , 'next' );
-				else if ( base.coordinatedifference < 0 )
+				} else if ( base.coordinatedifference < 0 && -(base.coordinatedifference) > base.$el.width() / base.config.swipeDragCoefficient ) {
 					change = base.focalChange( base.callback.prevSlideNum , 'prev' );
+				} else if ( base.config.swipeDragSnapBack ) {
+					base.$elwrp.addClass( 'animate' );
+					base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d( ' + base.benchcoordinate.trans + 'px , 0 , 0 )' );
+				}
 				base.animate( change );
 			});
 
-			if ( elmnts.length > 1 ) base.sliderTimer();
-
-			/**
-			 * Activate Resize
-			 */
-			$win.bind( 'resize' , function( e ) {
-				base.$resizeTimers[base.config.sldrNumber] = setTimeout( function() {
-					base.sliderPause();
-					//base.fillGaps( base.elmntsHTML ); // need to rework this to work with post load
-					base.resizeElements();
-					if ( elmnts.length > 1 ) base.sliderTimer();
-				} , base.config.resizeDelay );
-			});
-
-			base.resizeElements();
-
-			base.sliderLoaded( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
 		}
 
-	};
+		if ( elmnts.length > 1 ) base.sliderTimer();
 
-	/**
-	 * Recursive function to progressively load in slides based on http request time for the images
-	 * @param  {jquery object} elmnt       [description]
-	 * @param  {number}        nextLoadNum [next slide to load]
-	 * @param  {string}        method      ['shift' or 'pop' determines which slide to load in the array to pull from]
-	 * @return void
-	 */
-	base.ajaxLoad = function( elmnt , nextLoadNum , method ) {
-
-		var load     = elmnt.find( '.sldr-load' );
-		var loadSrc  = load.attr( 'src' );
-		var attrFind = [ 'class' , 'src' , 'alt' , 'title' , 'width' , 'height' ];
-		var loadImg, slideLoad, nextLoad, nextLoadNum;
-			var loadAttr = new Array();
-
-		for ( var i=0; i < attrFind.length; i++ ) {
-			var thisAttr = ( load.attr( attrFind[i] ) ) ? load.attr( attrFind[i] ) : false;
-			if ( thisAttr ) loadAttr.push( attrFind[i] + "='" + thisAttr + "'" );
-		}
-
-		if ( !loadSrc ) return;
-
-		load.replaceWith( '<img '+loadAttr.join(' ')+' >' );
-
-		$.ajax({ 
-			type    : 'GET',
-			url     : loadSrc,
-			async   : true,
-			cache   : true,
-			success : function( data ) {
-				
-				loadImg = elmnt.find( 'img' );
-				loadImg.removeClass( 'sldr-load' );
-				
-				base.slideLoaded( { 'slide' : base.sldrSlides[nextLoadNum] , 'callback' : base.callback , 'config' : base.config } );
-				
-				if ( method == 'shift' ) {
-					slideLoad = base.sldrLoadSlides.shift();
-					method = 'pop'; 
-				} else if ( method == 'pop' ) {
-					slideLoad = base.sldrLoadSlides.pop();
-					method = 'shift';
-				}
-				
-				base.config.sldrLoad++;
-
-				if ( base.config.sldrLoad < base.sldrSlides.length ) {
-					nextLoad    = base.$el.find( '.' + slideLoad.class_name );
-					nextLoadNum = slideLoad.slideNum - 1;
-					base.ajaxLoad( nextLoad , nextLoadNum , method );
-				} else {
-					base.init();
-				}
-
-			},
-			error: function ( xhr, status ) {
-				console.log( xhr );
-				console.log( status );
-			}
+		/**
+		 * Activate Resize
+		 */
+		$win.bind( 'resize' , function( e ) {
+			base.$resizeTimers[base.config.sldrNumber] = setTimeout( function() {
+				base.sliderPause();
+				base.resizeElements();
+				if ( elmnts.length > 1 ) base.sliderTimer();
+			} , base.config.resizeDelay );
 		});
+
+		base.resizeElements();
+
+		var change = {
+			'currentFocalIndex' : base.$el.find( '.' + base.config.focalClass ).index(),
+			'currentFocalPoint' : base.findFocalPoint(),
+			'shiftWidth'        : 0
+		};
+		base.positionFocus( change );
+
+		base.sliderLoaded( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
 
 	};
 
@@ -357,38 +293,26 @@ $.sldr = function( el , options ) {
 	  */
 	base.animate = function( change ) {
 		try {
-
-			// return;
-
 			if ( base.config.animate != '' && base.config.animate ) {
-
 				base.config.animate( base.$el , change , { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
-
 			} else {
-
 				if ( !change ) return;
-
-				var curr, tf, xtf, easing;
-
-				// ANIMATE
+				var curr, tf, easing;
 				base.$delayTimers[base.config.sliderNumber] = setTimeout( function() { 
 					base.$elwrp.addClass( 'animate' );
 					if ( base.config.animateJquery || base.config.isBrowser == 'MSIE 6' || base.config.isBrowser == 'MSIE 7' || base.config.isBrowser == 'MSIE 8' || base.config.isBrowser == 'MSIE 9' || base.config.animate != false ) {
-						easing = ( $.easing && $.easing.easeInOutQuint ) ? 'easeInOutQuint' : 'linear';
+						easing = ( $.easing && $.easing.easeInOutQuint ) ? base.config.animateJqueryEasing : 'linear';
 						base.$elwrp.animate({
 							marginLeft : base.config.offset - change.currentFocalPoint
-						} , 750 , easing );
+						} , base.config.animateJqueryTiming , easing );
 					} else {
 						curr = base.config.offset - change.currentFocalPoint;
 						base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d( ' + curr + 'px , 0 , 0 )' );
 					}
 					base.slideComplete( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
 				} , 100 ); // Tiny delay needed for slider to adjust
-
 			}
-		} catch ( err ) {
-			console.log( err.message );
-		}
+		} catch ( err ) { console.log( err.message ); }
 	};
 
 	/**
@@ -399,35 +323,22 @@ $.sldr = function( el , options ) {
 	 */
 	base.positionFocus = function( change ) {
 		try {
-
-			if (!change) return;
-
-			var wrp  = base.$elwrp;
-			var bwsr = base.config.isBrowser;
+			if ( !change ) return;
 			var focus;
-
-			// PREVENT ANIMATE
-			wrp.removeClass( 'animate' );
-
-			if ( base.config.animateJquery || bwsr == 'MSIE 6' || bwsr == 'MSIE 7' || bwsr == 'MSIE 8' || bwsr == 'MSIE 9' || base.config.animate != false ) {
-				// GET MARGIN PROPERTY
-				wrp.css( 'margin-left' , base.config.offset - change.currentFocalPoint );
+			base.$elwrp.removeClass( 'animate' );
+			if ( base.config.animateJquery || base.config.isBrowser == 'MSIE 6' || base.config.isBrowser == 'MSIE 7' || base.config.isBrowser == 'MSIE 8' || base.config.isBrowser == 'MSIE 9' || base.config.animate != false ) {
+				base.$elwrp.css( 'margin-left' , base.config.offset - change.currentFocalPoint );
 			} else {
-				// GET TRANSFORM PROPERTY
-				if ( wrp.css( base.config.cssPrefix + 'transform' ) == 'none' ) wrp.css( base.config.cssPrefix + 'transform' , 'translate3d( 0 , 0 , 0 )' );
+				if ( base.$elwrp.css( base.config.cssPrefix + 'transform' ) == 'none' ) base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d( 0 , 0 , 0 )' );
 				focus = base.config.offset - change.currentFocalPoint;
-				wrp.css( base.config.cssPrefix + 'transform' , 'translate3d(' + focus + 'px , 0  , 0 )' );
+				base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d(' + focus + 'px , 0  , 0 )' );
 			}
-
-			// FOCUS
 			base.$delayTimers[base.config.sliderNumber] = setTimeout( function() { 
-				wrp.addClass( 'animate' );
+				base.$elwrp.addClass( 'animate' );
 				base.slideComplete( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
 			} , base.config.resizeDelay + 1 ); // Tiny delay needed for slider to adjust
 
-		} catch ( err ) {
-			console.log( err.message );
-		}
+		} catch ( err ) { console.log( err.message ); }
 	};
 
 
@@ -443,12 +354,11 @@ $.sldr = function( el , options ) {
 	base.focalChange = function( focalChangeNum , method ) {
 		try {
 			method = typeof method !== 'undefined' ? method : 'default';
-			// var wrp        = base.$elwrp;
 			var elmnts     = base.$elwrp.children();
 			var focalElmnt = base.$elwrp.find( '> .' + base.config.focalClass );
 			var focalIndex = focalElmnt.index();
 			var nextFocalIndex, nextFocalPoint, prevFocalIndex, focalPoint, shiftSlide, shiftSlideClone, shiftSlideWidth, direction, slideClass;
-
+			
 			base.slideStart( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
 
 			/**
@@ -513,8 +423,9 @@ $.sldr = function( el , options ) {
 			} else {
 				// GET TRANSFORM PROPERTY
 				if ( base.$elwrp.css( base.config.cssPrefix + 'transform' ) == 'none' ) base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d( 0 , 0 , 0 )' );
-				xtf  = parseInt( base.getTranslatePosition( base.$elwrp.css( base.config.cssPrefix + 'transform' ) , 4 ) );
-				curr = xtf + shiftSlideWidth;
+				matrixIndex = ( base.config.isIE ) ? 12 : 4;
+				base.transformposition = parseInt( base.getTranslatePosition( base.$elwrp.css( base.config.cssPrefix + 'transform' ) , matrixIndex ) );
+				curr = base.transformposition + shiftSlideWidth;
 				base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d( ' + curr + 'px , 0 , 0 )' );
 			}
 
@@ -558,9 +469,7 @@ $.sldr = function( el , options ) {
 
 			return base.callback;
 
-		} catch ( err ) {
-			console.log( err.message );
-		}
+		} catch ( err ) { console.log( err.message ); }
 	};
 
 	/**
@@ -578,23 +487,12 @@ $.sldr = function( el , options ) {
 			var lastClass = base.sldrSlides[base.sldrSlides.length - 1].class_name;
 			if ( elmntw < sldrw * 5 ) {
 				wrp.find( '.' + lastClass ).after( elmntsHTML );
-				//closerBehind  = elmnts.eq( focalIndex ).prevAll( '.' + slideClass + ':first' ).index();
-				//closerInFront = elmnts.eq( focalIndex ).nextAll( '.' + slideClass + ':first' ).index();
-				// if ( closerInFront != -1 && closerInFront - focalIndex < focalIndex - closerBehind ) {
-				// 	nextFocalIndex = closerInFront;
-				// } else if ( closerBehind != -1 ) {
-				// 	nextFocalIndex = closerBehind;
-				// } else {
-				// 	nextFocalIndex = $( '.' + slideClass ).index();
-				// }
 				base.fillGaps( elmntsHTML );
 			} else {
 				wrp.css( 'width' , elmntw );
 				return true;
 			}
-		} catch ( err ) {
-			console.log( err.message );
-		}
+		} catch ( err ) { console.log( err.message ); }
 	};
 
 	/**
@@ -608,9 +506,7 @@ $.sldr = function( el , options ) {
 				wdth = wdth + $( elmnt[i] ).width();
 			});
 			return wdth;
-		} catch ( err ) {
-			console.log( err.message );
-		}
+		} catch ( err ) { console.log( err.message ); }
 	};
 
 	/**
@@ -619,8 +515,7 @@ $.sldr = function( el , options ) {
 	 */
 	base.findFocalPoint = function() {
 		try {
-			var wrp             = base.$elwrp;
-			var elmnts          = wrp.children();
+			var elmnts          = base.$elwrp.children();
 			var focalSlide      = base.$el.find( '.'+base.config.focalClass );
 			var focalSlideWidth = focalSlide.width() / 2;
 			var focalIndex      = focalSlide.index();
@@ -629,9 +524,7 @@ $.sldr = function( el , options ) {
 				focalPoint = focalPoint + elmnts.eq(i).width();
 			}
 			return focalPoint;
-		} catch ( err ) {
-			console.log( err.message );
-		}
+		} catch ( err ) { console.log( err.message ); }
 	};
 	
 	/**
@@ -640,72 +533,53 @@ $.sldr = function( el , options ) {
 	 */
 	base.resizeElements = function() {
 		try {
-			var wrp     = base.$elwrp;
-			var elmnts  = wrp.children();
-			var elmwdth = base.findWidth( elmnts );
-			var wrpwdth = parseInt( wrp.css( 'width' ).slice( 0 , -2 ) );
+			var elmnts   = base.$elwrp.children();
+			var elmwdth  = base.findWidth( elmnts );
+			var wrpwdth  = base.$elwrp.width();
+			var samewdth = ( base.$el.css( 'width' ) == elmnts.css( 'width' ) ) ? true : false;
 
 			if ( base.config.sldrWidth == 'responsive' ) {
 				elmnts.css( 'width' , base.$el.width() );
-				if ( elmwdth > wrpwdth ) wrp.css( 'width' , elmwdth );
+				if ( elmwdth > wrpwdth ) base.$elwrp.css( 'width' , elmwdth );
 			} else if ( base.config.sldrWidth != '' ) {
-				elmnts.css( 'width' , base.config.sldrWidth );
+				return;
 			}
+
+			if ( samewdth ) return;
+
 			base.config.offset = base.$el.width() / 2; // UPDATE THE OFFSET, need to change this to work on the config offset
+
 			var change = {
 				'currentFocalIndex' : base.$el.find( '.' + base.config.focalClass ).index(),
 				'currentFocalPoint' : base.findFocalPoint(),
 				'shiftWidth'        : 0
 			};
 			base.positionFocus( change );
-
-		} catch ( err ) {
-			console.log( err.message );
-		}
-	};
-
-	/**
-	 * Updates the coordinates for click drag or touch drag 
-	 * @param  {object} event the event object created on touchstart or mousemove
-	 * @return null
-	 */
-	base.coordinatehandler = function( event ) {
-		event = event || window.event; // IE-ism
-		// base.preventselect( event );
-		if ( event.originalEvent.touches !== undefined )
-			base.cursorcoordinate = { x : event.originalEvent.touches[0].pageX , y : event.originalEvent.touches[0].pageY };
-		else 
-			base.cursorcoordinate = { x : event.clientX , y : event.clientY };
+		} catch ( err ) { console.log( err.message ); }
 	};
 	
 	/**
 	 * Updates the previous coordinates if there is movement on click drag or touch drag
 	 * @return {[type]} [description]
 	 */
-	base.coordinateevents = function() {
+	base.coordinateevents = function( event ) {
+		var curr;
+		base.pagescrollY = window.pageYOffset;
 		if ( !base.trackmouse ) return;
+		event = event || window.event;
+		if ( event.originalEvent.touches !== undefined ) {
+			base.cursorcoordinate = { x : event.originalEvent.touches[0].pageX , y : event.originalEvent.touches[0].pageY };
+		} else {
+			base.cursorcoordinate = { x : event.clientX , y : event.clientY };
+		}
 		base.thiscoordinate = base.cursorcoordinate;
 		if ( base.prevcoordinate != base.thiscoordinate ) {
+			matrixIndex = ( base.config.isIE ) ? 12 : 4;
+			base.transformposition = parseInt( base.getTranslatePosition( base.$elwrp.css( base.config.cssPrefix + 'transform' ) , matrixIndex ) );
+			curr = base.transformposition - ( base.prevcoordinate.x - base.thiscoordinate.x );
+			base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d( ' + curr + 'px , 0 , 0 )' );
 			base.prevcoordinate = base.thiscoordinate;
-			// xtf  = parseInt( base.getTranslatePosition( base.$el.children().css( base.config.cssPrefix + 'transform' ) , 4 ) );
-			// base.dragdifference = base.benchcoordinate.x - base.prevcoordinate.x;
-			// curr = xtf - base.dragdifference;
-			// base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d( ' + curr + 'px , 0 , 0 )' );
-			// console.log( base.thiscoordinate.x + ' ' + base.thiscoordinate.y );
 		}
-	};
-
-	/**
-	 * Prevents selection being made on click drag or touch drag
-	 * @param  {object} event the event object created on touchstart or mousemove
-	 * @return null
-	 */
-	base.preventselect = function( event ) {
-		if ( event.stopPropagation ) event.stopPropagation();
-		if ( event.preventDefault )  event.preventDefault();
-		event.cancelBubble = true;
-		event.returnValue  = false;
-		return false;
 	};
 
 	/**
@@ -714,8 +588,7 @@ $.sldr = function( el , options ) {
 	 * @return void
 	 */
 	base.sliderInit = function( args ) {
-		if( base.config.sldrInit != '' )
-		{
+		if( base.config.sldrInit != '' ) {
 			base.config.sldrInit( args );
 		}
 	};
@@ -726,8 +599,7 @@ $.sldr = function( el , options ) {
 	 * @return void
 	 */
 	base.slideLoaded = function( args ) {
-		if( base.config.sldLoaded != '' )
-		{
+		if( base.config.sldLoaded != '' ) {
 			base.config.sldLoaded( args );
 		}
 	};
@@ -738,10 +610,9 @@ $.sldr = function( el , options ) {
 	 * @return void
 	 */
 	base.sliderLoaded = function( args ) {
-		if( base.config.sldrLoaded != '' )
-		{
+		if( base.config.sldrLoaded != '' ) {
 			base.config.sldrLoaded( args );
-		}
+		} 
 	};
 
 	/**
@@ -750,8 +621,7 @@ $.sldr = function( el , options ) {
 	 * @return void
 	 */
 	base.slideStart = function( args ) {
-		if( base.config.sldrStart != '' )
-		{
+		if( base.config.sldrStart != '' ) {
 			base.config.sldrStart( args );
 		}
 	};
@@ -762,18 +632,10 @@ $.sldr = function( el , options ) {
 	 * @return void
 	 */
 	base.slideComplete = function( args ) {
-		if( base.config.sldrComplete != '' )
-		{
+		if( base.config.sldrComplete != '' ) {
 			base.config.sldrComplete( args );
 		}
 	};
-
-	// base.hashChange = function( args ) {
-	// 	if( base.config.hashChange != '' )
-	// 	{
-	// 		base.config.hashChange( args );
-	// 	}
-	// }
 
 	/**
 	 * [sliderTimer description]
@@ -782,11 +644,9 @@ $.sldr = function( el , options ) {
 	base.sliderTimer = function() {
 		if ( base.config.sldrAuto ) {
 			base.$sliderTimers[base.config.sldrNumber] = setTimeout( function() {
-
 				var change  = base.focalChange( base.callback.nextSlideNum , 'next' );
 				var animate = base.animate( change );
 				base.sliderTimer( base.$el );
-
 				if ( base.config.selectors != '' ) {
 					var selector = base.config.selectors.eq( base.callback.nextSlideNum - 2 );
 					selector.siblings().removeClass( base.config.focalClass );
@@ -838,7 +698,6 @@ $.sldr = function( el , options ) {
 			base.config.cssPrefix = '-webkit-';
 		} else if( navigator.userAgent.match('Gecko') != null ) {
 			base.config.isBrowser = 'Gecko';
-			// base.config.cssPrefix = '-moz-';
 		} else if( navigator.userAgent.match('MSIE 6') != null ) {
 			base.config.isBrowser = 'MSIE 6';
 			base.config.isIE = true;
@@ -852,8 +711,23 @@ $.sldr = function( el , options ) {
 			base.config.isBrowser = 'MSIE 9';
 			base.config.isIE = true;
 			base.config.cssPrefix = '-ms-';
+		} else if( navigator.userAgent.match('MSIE 10') != null ) {
+			base.config.isBrowser = 'MSIE 10';
+			base.config.isIE = true;
 		}
-	}
+	};
+
+	/**
+	 * [isMobile description]
+	 * @return {Boolean} [description]
+	 */
+	base.isMobile = function() {
+      var check = false;
+      (function (a) {
+        if (/(android|ipad|playbook|silk|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+      })( navigator.userAgent || navigator.vendor || window.opera );
+      return check;
+    };
     
     base.init();
   };
@@ -863,30 +737,35 @@ $.sldr = function( el , options ) {
    * @type {Object}
    */
   $.sldr.defaultOptions = {
-    focalClass    : 'focalPoint',
-	offset        : $(this).width() / 2,
-	selectors     : '',
-	toggle        : '',
-	nextSlide     : '',
-	hashChange    : false,
-	previousSlide : '',
-	resizeDelay   : 1,
-	sldrNumber    : 0,
-	sldrStart     : '',
-	sldrComplete  : '',
-	sldrInit      : '',
-	sldLoaded     : '',
-	sldrLoaded    : '',
-	sldrWidth     : '',
-	animate       : '',
-	animateJquery : false,
-	sldrAuto      : false, 
-	sldrTime      : 8000,
-	isBrowser     : navigator.userAgent,
-	isIE          : false,
-	cssPrefix     : ''
+    focalClass           : 'focalPoint',
+	offset               : $( this ).width() / 2,
+	selectors            : '',
+	toggle               : '',
+	nextSlide            : '',
+	hashChange           : false,
+	previousSlide        : '',
+	resizeDelay          : 1,
+	sldrNumber           : 0,
+	sldrStart            : '',
+	sldrComplete         : '',
+	sldrInit             : '',
+	sldLoaded            : '',
+	sldrLoaded           : '',
+	sldrWidth            : '',
+	animate              : '',
+	animateJquery        : false,
+	animateJqueryTiming  : 750,
+	animateJqueryEasing  : 'easeInOutQuint',
+	swipeDragDesktop     : true,
+	swipeDragCoefficient : 3,
+	swipeDragSnapBack    : true,
+	sldrAuto             : false,
+	sldrTime             : 8000,
+	isBrowser            : navigator.userAgent,
+	isIE                 : false,
+	cssPrefix            : ''
   };
-  
+
   /**
    * [sldr description]
    * @param  {[type]} options [description]
