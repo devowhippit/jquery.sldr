@@ -1,33 +1,33 @@
 /*
  * jquery.sldr
- * 
- * A content slider featuring responsive slides, flexible slide widths, callbacks, 
+ *
+ * A content slider featuring responsive slides, flexible slide widths, callbacks,
  * and custom animation hooks.
- * 
+ *
  * Version: 1.1
  * Minimum requirements: Developed with jQuery 1.10.2, May work with older versions.
  *
  * The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2014 Devon Hirth
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
  * the Software, and to permit persons to whom the Software is furnished to do so,
  * subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
  * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 ( function( $ ) {
@@ -89,7 +89,7 @@ $.sldr = function( el , options ) {
 		 */
 		if ( base.sldrSlides == '' ) {
 
-			base.callback = { 
+			base.callback = {
 				'sldr'              : base.$el,
 				'prevFocalIndex'    : '',
 				'prevSlideNum'      : '',
@@ -126,7 +126,7 @@ $.sldr = function( el , options ) {
 				}
 			}
 		}
-		
+
 		/**
 		 * Do not finish initiating plugin if there is only one slide.
 		 */
@@ -148,7 +148,7 @@ $.sldr = function( el , options ) {
 
 		/**
 		 * Center Slides
-		 */	
+		 */
 		base.focalChange( 1 );
 		base.resizeElements();
 
@@ -180,8 +180,8 @@ $.sldr = function( el , options ) {
 			base.config.nextSlide.click( function(e) {
 				if ( base.config.selectors != '' ) {
 					base.config.selectors.removeClass( base.config.focalClass );
-					base.config.selectors.eq( base.callback.nextSlideNum - 1 ).addClass( base.config.focalClass );	
-				}	
+					base.config.selectors.eq( base.callback.nextSlideNum - 1 ).addClass( base.config.focalClass );
+				}
 				var change  = base.focalChange( base.callback.nextSlideNum , 'next' );
 				base.animate( change );
 				e.preventDefault();
@@ -244,7 +244,7 @@ $.sldr = function( el , options ) {
 				var change;
 
 				if ( base.pagescrollY !== window.pageYOffset ) return;
-				
+
 				event.preventDefault();
 				base.trackmouse = false;
 				base.coordinatedifference = base.benchcoordinate.x - base.cursorcoordinate.x;
@@ -298,7 +298,7 @@ $.sldr = function( el , options ) {
 			} else {
 				if ( !change ) return;
 				var curr, tf, easing;
-				base.$delayTimers[base.config.sliderNumber] = setTimeout( function() { 
+				base.$delayTimers[base.config.sliderNumber] = setTimeout( function() {
 					base.$elwrp.addClass( 'animate' );
 					if ( base.config.animateJquery || base.config.isBrowser == 'MSIE 6' || base.config.isBrowser == 'MSIE 7' || base.config.isBrowser == 'MSIE 8' || base.config.isBrowser == 'MSIE 9' || base.config.animate != false ) {
 						easing = ( $.easing && $.easing.easeInOutQuint ) ? base.config.animateJqueryEasing : 'linear';
@@ -333,7 +333,7 @@ $.sldr = function( el , options ) {
 				focus = base.config.offset - change.currentFocalPoint;
 				base.$elwrp.css( base.config.cssPrefix + 'transform' , 'translate3d(' + focus + 'px , 0  , 0 )' );
 			}
-			base.$delayTimers[base.config.sliderNumber] = setTimeout( function() { 
+			base.$delayTimers[base.config.sliderNumber] = setTimeout( function() {
 				base.$elwrp.addClass( 'animate' );
 				base.slideComplete( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
 			} , base.config.resizeDelay + 1 ); // Tiny delay needed for slider to adjust
@@ -358,7 +358,7 @@ $.sldr = function( el , options ) {
 			var focalElmnt = base.$elwrp.find( '> .' + base.config.focalClass );
 			var focalIndex = focalElmnt.index();
 			var nextFocalIndex, nextFocalPoint, prevFocalIndex, focalPoint, shiftSlide, shiftSlideClone, shiftSlideWidth, direction, slideClass;
-			
+
 			base.slideStart( { 'slides' : base.sldrSlides , 'callback' : base.callback , 'config' : base.config } );
 
 			/**
@@ -371,15 +371,15 @@ $.sldr = function( el , options ) {
 			slideClass = slideClass[ 0 ];
 
 			if ( focalElmnt.hasClass( slideClass ) ) return false;
-			
+
 			closerBehind  = elmnts.eq( focalIndex ).prevAll( '.' + slideClass + ':first' ).index();
 			closerInFront = elmnts.eq( focalIndex ).nextAll( '.' + slideClass + ':first' ).index();
 
-			if ( 
-				closerInFront != -1 
-				&& closerInFront - focalIndex < focalIndex - closerBehind 
-				|| closerInFront - focalIndex == focalIndex - closerBehind 
-				&& method != 'prev' 
+			if (
+				closerInFront != -1
+				&& closerInFront - focalIndex < focalIndex - closerBehind
+				|| closerInFront - focalIndex == focalIndex - closerBehind
+				&& method != 'prev'
 			) {
 				nextFocalIndex = closerInFront;
 			} else if ( closerBehind != -1 ) {
@@ -391,7 +391,7 @@ $.sldr = function( el , options ) {
 			nextFocalPoint = elmnts.eq( nextFocalIndex );
 			elmnts.removeClass( base.config.focalClass );
 			nextFocalPoint.addClass( base.config.focalClass );
-			
+
 			/**
 			 * Find the range of elments in the slider to cut and paste, making it symmetrical.
 			 * @type {Object}
@@ -483,7 +483,7 @@ $.sldr = function( el , options ) {
 			var sldrw     = base.$el.width();
 			var wrp       = base.$elwrp;
 			var elmnt     = wrp.children();
-			var elmntw    = base.findWidth( elmnt ); 
+			var elmntw    = base.findWidth( elmnt );
 			var lastClass = base.sldrSlides[base.sldrSlides.length - 1].class_name;
 			if ( elmntw < sldrw * 5 ) {
 				wrp.find( '.' + lastClass ).after( elmntsHTML );
@@ -526,7 +526,7 @@ $.sldr = function( el , options ) {
 			return focalPoint;
 		} catch ( err ) { console.log( err.message ); }
 	};
-	
+
 	/**
 	 * Functions to perform when the browser is resized
 	 * @return void
@@ -545,6 +545,10 @@ $.sldr = function( el , options ) {
 				return;
 			}
 
+			if ( base.config.sldrCols !== 1 ) {
+				elmnts.css( 'width' , base.$el.width() / base.config.sldrCols );
+			}
+
 			if ( samewdth ) return;
 
 			base.config.offset = base.$el.width() / 2; // UPDATE THE OFFSET, need to change this to work on the config offset
@@ -557,7 +561,7 @@ $.sldr = function( el , options ) {
 			base.positionFocus( change );
 		} catch ( err ) { console.log( err.message ); }
 	};
-	
+
 	/**
 	 * Updates the previous coordinates if there is movement on click drag or touch drag
 	 * @return {[type]} [description]
@@ -612,7 +616,7 @@ $.sldr = function( el , options ) {
 	base.sliderLoaded = function( args ) {
 		if( base.config.sldrLoaded != '' ) {
 			base.config.sldrLoaded( args );
-		} 
+		}
 	};
 
 	/**
@@ -728,10 +732,10 @@ $.sldr = function( el , options ) {
       })( navigator.userAgent || navigator.vendor || window.opera );
       return check;
     };
-    
+
     base.init();
   };
-  
+
   /**
    * [defaultOptions description]
    * @type {Object}
@@ -752,6 +756,7 @@ $.sldr = function( el , options ) {
 	sldLoaded            : '',
 	sldrLoaded           : '',
 	sldrWidth            : '',
+	sldrCols             : 1,
 	animate              : '',
 	animateJquery        : false,
 	animateJqueryTiming  : 750,
@@ -777,5 +782,5 @@ $.sldr = function( el , options ) {
       $.sldr.defaultOptions.sldrNumber++;
     });
   };
-  
+
 })( jQuery );
